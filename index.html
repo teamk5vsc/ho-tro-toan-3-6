@@ -213,9 +213,16 @@ summary{cursor:pointer;font-weight:600}
 .notice .bi{flex:1 1 420px}
 @media (min-width:861px){.mods{flex-wrap:wrap;overflow:visible}}
 .notice .bi .en{font-size:12px}
-.credit{margin-top:22px;padding:12px 14px;border-top:1px solid var(--line, currentColor);font-size:12.5px;line-height:1.5;opacity:.85}
+.credit{margin:28px auto 8px;padding:16px 14px 6px;border-top:1px solid var(--line);text-align:center;color:var(--muted);font-size:12.5px;line-height:1.55}
+.credit .cl1,.credit .cl2,.credit .cl3{display:block}
+.credit .cl1{color:var(--ink);font-size:13px}
+.credit .cl1 b{font-weight:700}
+.credit .cl1 i{font-style:normal;margin:0 6px;color:var(--muted)}
+.credit .cl2{margin-top:3px}
+.credit .cl3{margin-top:3px;font-size:12px;letter-spacing:.02em}
 .credit .en{font-size:12px}
-.credit a{color:inherit;text-decoration:underline}
+[data-lang="both"] .credit .vi,[data-lang="both"] .credit .en{display:block}
+[data-lang="both"] .credit .en{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
 .rvgrp{margin-bottom:10px}
 .rvtab td{font-size:13.5px}
 @media print{.mods,.top .seg,aside,.notice,.btn,.toast,.err{display:none!important}.layout{display:block}.hero,.panel{border:0;padding:0}body{background:#fff;color:#000}.tw{overflow:visible}}
@@ -244,7 +251,7 @@ summary{cursor:pointer;font-weight:600}
     </aside>
     <main id="main"></main>
   </div>
-  <footer class="credit" role="contentinfo"><span class="bi"><span class="vi"><b>Người phát triển:</b> Cô Đào Ngọc Mai. Web app được phát triển với sự hỗ trợ của Claude (AI, Anthropic); nội dung chuyên môn dựa trên Mathematics Intervention Toolkit (IES/REL 2026-004) và đối chiếu với sách Stage 6 của trường. Cập nhật: 25/09/2026</span><span class="en"><b>Developed by:</b> Ms Đào Ngọc Mai. Built with the assistance of Claude (AI, Anthropic); content is based on the Mathematics Intervention Toolkit (IES/REL 2026-004) and cross-checked with the school’s Stage 6 book. Updated: 25 Sep 2026</span></span></footer>
+  <footer class="credit" role="contentinfo"><span class="bi"><span class="vi"><span class="cl1">Web app được phát triển bởi <b>Cô Đào Ngọc Mai</b> <i>·</i> Hỗ trợ công nghệ bởi Claude (Anthropic)</span><span class="cl2">Nội dung chuyên môn tham khảo Mathematics Intervention Toolkit (IES/REL 2026-004) và tài liệu do giáo viên cung cấp.</span><span class="cl3">Cập nhật 25/09/2026</span></span><span class="en"><span class="cl1">Web app developed by <b>Ms Đào Ngọc Mai</b> <i>·</i> Technology support by Claude (Anthropic)</span><span class="cl2">Professional content refers to the Mathematics Intervention Toolkit (IES/REL 2026-004) and materials provided by the teacher.</span><span class="cl3">Updated 25 Sep 2026</span></span></span></footer>
 </div>
 <div class="toast" id="toast" hidden></div>
 <script>
