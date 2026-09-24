@@ -209,6 +209,13 @@ summary{cursor:pointer;font-weight:600}
 [hidden]{display:none!important}
 .svgbox svg.blk{display:inline-block;width:auto;min-width:0;height:auto;vertical-align:bottom}
 .chipbtn[aria-pressed="true"] .bi .en,.mods button[aria-current="true"] .bi .en,.flow span.on .bi .en,.btn.pri .bi .en{color:inherit;opacity:.9}
+.notice{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;border:1px solid var(--mark);background:var(--mark-soft);border-radius:10px;padding:6px 12px;margin-bottom:10px;font-size:12.5px;line-height:1.4}
+.notice .bi{flex:1 1 420px}
+@media (min-width:861px){.mods{flex-wrap:wrap;overflow:visible}}
+.notice .bi .en{font-size:12px}
+.rvgrp{margin-bottom:10px}
+.rvtab td{font-size:13.5px}
+@media print{.mods,.top .seg,aside,.notice,.btn,.toast,.err{display:none!important}.layout{display:block}.hero,.panel{border:0;padding:0}body{background:#fff;color:#000}.tw{overflow:visible}}
 @media (max-width:860px){.mods button small{display:none}}
 </style>
 
@@ -225,6 +232,7 @@ summary{cursor:pointer;font-weight:600}
       <button data-act="lang" data-v="en">English</button>
     </div>
   </div>
+  <div class="notice" role="note"><span class="bi"><span class="vi"><b>Bản dịch tham khảo, chưa được thẩm định.</b> Tiếng Việt do AI hỗ trợ dịch, chưa có giáo viên Toán hay biên dịch viên kiểm tra; đây là bản chuyển thể độc lập, không phải sản phẩm chính thức của IES.</span><span class="en"><b>Reference translation, not yet reviewed.</b> The Vietnamese is AI-assisted and has not been checked by a maths teacher or translator; this is an independent adaptation, not an official IES product.</span></span> <button class="btn sm" data-act="mod" data-i="7">Nguồn &amp; thẩm định · Sources &amp; review</button></div>
   <nav class="mods" id="mods" aria-label="Modules"></nav>
   <div class="layout">
     <aside>
@@ -273,7 +281,7 @@ function fbar(n,d,w,h,cls){w=w||160;h=h||22;var bars=Math.max(1,Math.ceil(n/d)),
   var left=n;for(var b=0;b<bars;b++){for(var i=0;i<d;i++){var on=left>0;left--;s+='<rect x="'+(i*w/d)+'" y="'+(b*(h+4))+'" width="'+(w/d)+'" height="'+h+'" style="fill:'+(on?'var(--tile2)':'var(--surface)')+';stroke:var(--ink);stroke-width:1.5"/>';}}
   return s+'</svg>';}
 /* ================= registry & state ================= */
-var MODS=[],cur=null,W={},ACT={},QS={},GL=[];
+var MODS=[],cur=null,W={},ACT={},QS={},GL=[],REVREG=[],EXTRA=[];
 function regMod(m){MODS[m.id]=m;}
 function D(){var k=cur.key;if(!S.d[k])S.d[k]={};return S.d[k];}
 function getP(p){var o=D(),a=p.split('.');for(var i=0;i<a.length;i++){if(o==null)return undefined;o=o[a[i]];}return o;}
@@ -290,7 +298,7 @@ function doneBtn(i){var last=i>=cur.tabs.length-1;return '<div class="row end"><
 function list(items,ordered){return '<'+(ordered?'ol':'ul')+' class="plain">'+items.map(function(x){return '<li>'+T(x[0],x[1])+'</li>';}).join('')+'</'+(ordered?'ol':'ul')+'>';}
 function videoLinks(arr){return '<div class="pill-links">'+arr.map(function(v){return '<a href="'+v[0]+'" target="_blank" rel="noopener">▶ '+esc(v[1])+'</a>';}).join('')+'</div><p style="font-size:13px;color:var(--muted)">'+T('Video mở ở tab mới (tiếng Anh). Khi xem, ghi lại vào các ô dưới đây.','Videos open in a new tab. As you watch, note your observations below.')+'</p>';}
 function stepList(steps){return '<ol class="steplist">'+steps.map(function(s){return '<li><div>'+T(s.vi,s.en)+'</div><span class="tm">'+esc(s.tm||'')+'</span></li>';}).join('')+'</ol>';}
-function accordion(items){return items.map(function(c,i){return '<details><summary>'+T(c.q[0],c.q[1])+'</summary><p>'+T(c.a[0],c.a[1])+'</p>'+(c.extra||'')+noteBox('chal.'+i,T('Ý kiến của bạn','Add your ideas'))+'</details>';}).join('');}
+function accordion(items){items.forEach(function(c){REVREG.push({m:cur.key,cat:'chal',en:c.q[1]+' — '+c.a[1],vi:c.q[0]+' — '+c.a[0]});});return items.map(function(c,i){return '<details><summary>'+T(c.q[0],c.q[1])+'</summary><p>'+T(c.a[0],c.a[1])+'</p>'+(c.extra||'')+noteBox('chal.'+i,T('Ý kiến của bạn','Add your ideas'))+'</details>';}).join('');}
 /* ---------- knowledge checks ---------- */
 function qHTML(key,q){
   var full=cur.key+':'+key;QS[full]=q;var sel=S.kc[full],has=sel!==undefined;
@@ -324,6 +332,7 @@ function tabIntro(){
   h+=panel(T('Đối chiếu với sách Stage 6 của trường','Mapping to your Stage 6 book'),'<div class="tw"><table><thead><tr><th>'+P('Ý tưởng trong Toolkit','Toolkit idea')+'</th><th>'+P('Sách Stage 6','Stage 6 book')+'</th><th>'+P('Dùng ở tab','Used in tab')+'</th></tr></thead><tbody>'+
     c.book.map(function(r){return '<tr><td>'+T(r[0],r[1])+'</td><td>'+esc(r[2])+'</td><td>'+esc(r[3])+'</td></tr>';}).join('')+'</tbody></table></div><p style="margin-top:10px;font-size:13px;color:var(--muted)">'+T('Ví dụ trong app do mình soạn theo tinh thần của sách, không sao chép bài tập của sách. Số đơn vị (Unit) lấy từ mục lục Vol 1 và Vol 2; hãy đối chiếu số bài và số trang với bản in.','Examples in this app are newly written in the spirit of the book, not copied from it. Unit numbers come from the Vol 1 and Vol 2 contents pages; check exercise and page numbers against your printed copy.')+'</p>');
   h+=panel(T('Nguồn và lưu ý','Source and notes'),'<p style="font-size:13.5px">'+T('Dựa trên <a href="https://ies.ed.gov/ncee/rel/math-support-grades-3-6/intro" target="_blank" rel="noopener">Mathematics Intervention Toolkit</a> (IES/REL Northeast, REL 2026-004, phạm vi công cộng) và WWC Practice Guide 2021006. Đây là bản chuyển thể độc lập, không phải sản phẩm chính thức của IES. Tiến độ và ghi chú chỉ lưu trên trình duyệt này.','Based on the <a href="https://ies.ed.gov/ncee/rel/math-support-grades-3-6/intro" target="_blank" rel="noopener">Mathematics Intervention Toolkit</a> (IES/REL Northeast, REL 2026-004, public domain) and WWC Practice Guide 2021006. This is an independent adaptation, not an official IES product. Progress and notes are stored only in this browser.')+'</p>'+(c.srcNote?'<p style="font-size:13px;color:var(--muted)">'+T(c.srcNote[0],c.srcNote[1])+'</p>':''));
+  h+='<div class="row" style="margin-bottom:14px"><button class="btn" data-act="mod" data-i="7">'+I('Xem nguồn chi tiết và bảng kiểm thẩm định','See detailed sources and the review checklist')+' →</button></div>';
   return h+doneBtn(curTab());
 }
 function tabTry(){
@@ -418,7 +427,7 @@ function renderMods(){
     return '<button data-act="mod" data-i="'+i+'"'+(i===S.mod?' aria-current="true"':'')+'>'+I(m.nav[0],m.nav[1])+'<small>'+esc(m.sub)+(m.tabs.length>1?'':'')+'</small>'+(m.tabs.length>1&&d?'<span class="mdone">'+d+'/'+m.tabs.length+'</span>':'')+'</button>';}).join('');
 }
 function renderSide(){
-  var done=0,tot=0;MODS.forEach(function(m){if(m.tabs.length>1){m.tabs.forEach(function(t,j){tot++;if(isDone(m,j))done++;});}});
+  var done=0,tot=0;MODS.forEach(function(m){if(m.tabs.length>1&&m.key!=='rv'){m.tabs.forEach(function(t,j){tot++;if(isDone(m,j))done++;});}});
   var m=cur,md=0;m.tabs.forEach(function(t,j){if(isDone(m,j))md++;});
   $('#prog').innerHTML='<small>'+P('MODULE NÀY','THIS MODULE')+' · '+md+' / '+m.tabs.length+'</small><div class="bar"><i style="width:'+(md/m.tabs.length*100)+'%"></i></div><small style="display:block;margin-top:6px">'+P('TOÀN KHOÁ','WHOLE COURSE')+' · '+done+' / '+tot+'</small><div class="bar"><i style="width:'+(tot?done/tot*100:0)+'%"></i></div>';
   $('#steps').innerHTML=m.tabs.map(function(s,i){
@@ -462,7 +471,7 @@ document.addEventListener('change',function(e){
   var el=e.target;if(el.id==='pl-set'){var tb=$('#logrows');if(tb){var si=+el.value;tb.innerHTML=logRows(cur.cfg.try.sets[si],si);}}
 });
 /* export to other parts */
-window.TK={GL:GL,S:S,W:W,ACT:ACT,QS:QS,MODS:MODS,regMod:regMod,$:$,$$:$$,esc:esc,T:T,I:I,P:P,L:L,gcd:gcd,lcm:lcm,clamp:clamp,dec:dec,pct:pct,fr:fr,mixed:mixed,shuffle:shuffle,rnd:rnd,fbar:fbar,save:save,toast:toast,
+window.TK={REV:REVREG,EXTRA:EXTRA,GL:GL,S:S,W:W,ACT:ACT,QS:QS,MODS:MODS,regMod:regMod,$:$,$$:$$,esc:esc,T:T,I:I,P:P,L:L,gcd:gcd,lcm:lcm,clamp:clamp,dec:dec,pct:pct,fr:fr,mixed:mixed,shuffle:shuffle,rnd:rnd,fbar:fbar,save:save,toast:toast,
   D:D,getP:getP,setP:setP,WS:WS,curTab:curTab,isDone:isDone,noteBox:noteBox,panel:panel,callout:callout,hero:hero,doneBtn:doneBtn,list:list,videoLinks:videoLinks,stepList:stepList,accordion:accordion,
   qHTML:qHTML,kcBlock:kcBlock,kcScore:kcScore,copyOut:copyOut,sumBox:sumBox,tabIntro:tabIntro,tabTry:tabTry,tabPLCB:tabPLCB,tabWrap:tabWrap,sorterHTML:sorterHTML,render:render,go:go,showErr:showErr,cur:function(){return cur;},setCur:function(m){cur=m;}};
 })();
@@ -496,7 +505,7 @@ function v1(){
   var rows=RECS.map(function(r){var k='pl'+r.i;
     return '<tr><td><b>'+P(r.vi,r.en)+'</b></td>'+(r.i===5?'<td colspan="3" style="font-size:13px;color:var(--muted)">'+P('Một buổi sinh hoạt nhóm, không có phần tự học hay routine.','One PLC session; no online tasks or routine.')+'</td><td>':'')+TASKS.map(function(t,ti){if(r.i===5&&ti<3)return '';return '<td style="text-align:center"><input type="checkbox" data-k="plan.'+k+t[0]+'" aria-label="'+esc(t[2])+'" '+(TK.getP('plan.'+k+t[0])?'checked':'')+'></td>';}).join('')+'<td><input type="text" data-k="plan.'+k+'dates" value="'+esc(TK.getP('plan.'+k+'dates')||'')+'" placeholder="dd/mm–dd/mm" aria-label="dates"></td></tr>';}).join('');
   return hero('Thông tin khoá học và kế hoạch của bạn','Course information and your plan','Khoá học kết hợp tự học trực tuyến, sinh hoạt nhóm chuyên môn (PLC) và thực hành trong lớp, khoảng 28 giờ trong một đến hai năm học.','A hybrid course combining online learning, Professional Learning Community (PLC) sessions and classroom practice: about 28 hours over one or two school years.')+
-  panel(T('Cấu trúc mỗi module','How each module is organised'),'<ol class="steplist">'+[['<b>Tab 1–3 · Tự học:</b> giới thiệu, khám phá A, khám phá B — video, đọc, hoạt động.','<b>Tabs 1–3 · Online session:</b> intro, explore A, explore B — videos, readings, activities.','~2–3 h'],['<b>Tab 4 · Sinh hoạt nhóm A:</b> thảo luận, thử chiến lược, chuẩn bị routine.','<b>Tab 4 · PLC Session-A:</b> discuss, try strategies, prepare a routine.','~1.5 h'],['<b>Tab 5 · Thử trong lớp:</b> dạy routine ít nhất một lần.','<b>Tab 5 · Try It!:</b> teach the routine at least once.','1+ lần'],['<b>Tab 6 · Sinh hoạt nhóm B:</b> chia sẻ kinh nghiệm, củng cố chiến lược.','<b>Tab 6 · PLC Session-B:</b> share experiences, strengthen strategies.','~1.5 h'],['<b>Tab 7 · Tổng kết:</b> tự phản ánh.','<b>Tab 7 · Wrap-up:</b> individual reflection.','~10 min']].map(function(s){return '<li><div>'+T(s[0],s[1])+'</div><span class="tm">'+s[2]+'</span></li>';}).join('')+'</ol>'+
+  panel(T('Cấu trúc mỗi module','How each module is organised'),'<ol class="steplist">'+[['<b>Tab 1–3 · Tự học:</b> giới thiệu, khám phá A, khám phá B — video, đọc, hoạt động.','<b>Tabs 1–3 · Online session:</b> intro, explore A, explore B — videos, readings, activities.',''],['<b>Tab 4 · Sinh hoạt nhóm A:</b> thảo luận, thử chiến lược, chuẩn bị routine.','<b>Tab 4 · PLC Session-A:</b> discuss, try strategies, prepare a routine.',''],['<b>Tab 5 · Thử trong lớp:</b> dạy routine ít nhất một lần.','<b>Tab 5 · Try It!:</b> teach the routine at least once.','≥ 1'],['<b>Tab 6 · Sinh hoạt nhóm B:</b> chia sẻ kinh nghiệm, củng cố chiến lược.','<b>Tab 6 · PLC Session-B:</b> share experiences, strengthen strategies.',''],['<b>Tab 7 · Tổng kết:</b> tự phản ánh.','<b>Tab 7 · Wrap-up:</b> individual reflection.','']].map(function(s){return '<li><div>'+T(s[0],s[1])+'</div><span class="tm">'+s[2]+'</span></li>';}).join('')+'</ol>'+
    '<p style="font-size:13px;color:var(--muted)">'+T('Module 1–4 kéo dài khoảng 5 tuần mỗi module. Module 5 khoảng 1 tuần, chỉ có một buổi sinh hoạt nhóm.','Modules 1–4 run about 5 weeks each. Module 5 is about 1 week with a single PLC session.')+'</p>')+
   panel(T('Thời lượng từng phần','Time by module'),'<div class="tw"><table><thead><tr><th>Module</th><th>'+P('Giờ học (ước tính)','PD hours (approx.)')+'</th></tr></thead><tbody>'+HOURS.map(function(h){return '<tr><td>'+P(h[0],h[1])+'</td><td style="font-family:var(--mono)">'+h[2]+'</td></tr>';}).join('')+'</tbody></table></div>')+
   panel(T('Hỏi nhanh – đáp nhanh','Quick FAQ'),
@@ -537,6 +546,7 @@ TK.regMod({id:0,key:'m0',nav:['Mở đầu','Introduction'],sub:'Kick-off',short
   {vi:'Thông tin khoá học',en:'Course Info',tag:'Tab 2',view:v1},
   {vi:'Buổi khởi động',en:'Kick-Off Session',tag:'Tab 3',view:v2},
   {vi:'Tổng kết',en:'Wrap-Up',tag:'Tab 4',view:TK.tabWrap}]});
+RECS.forEach(function(r){TK.EXTRA.push({m:'m0',cat:'Năm khuyến nghị (trích H2) / The five recommendations (H2)',en:r.en+': “'+r.q+'”',vi:r.vi+': '+r.v});});
 TK.GL.push(['thẻ phân số','fraction card','Card showing a fraction with a shaded visual model.'],['mốc','benchmark number','A reference point (such as 0, 1/2, 1) for estimating and comparing.'],['chiến lược dùng mốc','benchmark strategy','Reasoning about a number’s size by comparing it with a benchmark.'],['khái quát hoá','generalize','State a pattern or rule that holds beyond the examples.']);
 })();
 
@@ -762,6 +772,7 @@ TK.regMod({id:1,key:'m1',nav:['Ngôn ngữ toán','Math Language'],sub:'Module 1
   {vi:'Thử trong lớp',en:'Try It! Routine',tag:'Tab 5',view:TK.tabTry},
   {vi:'Sinh hoạt nhóm B',en:'PLC Session-B',tag:'Tab 6',view:TK.tabPLCB},
   {vi:'Tổng kết',en:'Wrap-Up',tag:'Tab 7',view:TK.tabWrap}]});
+PUZ.forEach(function(p){p.items.forEach(function(it){it.r.forEach(function(r){TK.EXTRA.push({m:'m1',cat:'Câu đố Ai khác biệt — lý do (một phần tự soạn) / Puzzle reasons (partly self-authored)',en:p.en+' · '+it.k+' ('+it.txt+'): '+r[0],vi:p.vi+' · '+it.k+' ('+it.txt+'): '+r[1]});});});});
 var VIN={'ones':'hàng đơn vị','tens':'hàng chục','hundreds':'hàng trăm','thousands':'hàng nghìn','digit':'chữ số','place value':'giá trị theo hàng','least':'nhỏ nhất','greatest':'lớn nhất','numerator':'tử số','denominator':'mẫu số','unit fraction':'phân số đơn vị','greater than':'lớn hơn','less than':'nhỏ hơn','equivalent':'bằng nhau (tương đương)','simplest form':'dạng tối giản','improper fraction':'phân số lớn hơn 1','mixed number':'hỗn số','tenths':'phần mười','hundredths':'phần trăm','decimal point':'dấu thập phân'};
 Object.keys(DEF).forEach(function(k){TK.GL.push([VIN[k]||k,k,DEF[k][0]]);});
 TK.GL.push(['sơ đồ từ vựng','graphic organizer','A visual display of a term: definition, characteristics, examples, non-examples.'],['định nghĩa dễ hiểu','student-friendly definition','A mathematically accurate definition at an appropriate reading level.'],['ngôn ngữ học thuật','academic language','School language, discipline-specific (perimeter) or general (explain, compare).'],['bảng từ vựng dán tường','word wall','Displayed math words with definitions, examples and visuals.'],['câu mở đầu / câu mẫu','sentence starter / frame','A prompt that begins a sentence for students to complete.']);
@@ -1464,6 +1475,7 @@ TK.regMod({id:4,key:'m4',nav:['Bài toán lời văn','Word Problems'],sub:'Modu
   {vi:'Thử trong lớp',en:'Try It! Routine',tag:'Tab 5',view:TK.tabTry},
   {vi:'Sinh hoạt nhóm B',en:'PLC Session-B',tag:'Tab 6',view:TK.tabPLCB},
   {vi:'Tổng kết',en:'Wrap-Up',tag:'Tab 7',view:TK.tabWrap}]});
+TYPES.forEach(function(t){t.ctx.forEach(function(c,ci){c.st.forEach(function(s,i){TK.EXTRA.push({m:'m4',cat:'Bài toán mẫu (tự soạn) / Sample problems (self-authored)',en:t.en+' no.'+(ci+1)+': '+s[1]+' > '+c.ask[i][1],vi:t.vi+' số '+(ci+1)+': '+s[0]+' > '+c.ask[i][0]});});});});
 TK.GL.push(['dạng bài toán','problem type','All problems with the same set of quantities or salient features; not the same as the operation.'],['bài Thay đổi','Change problem','A quantity increases or decreases over time (join/separate).'],['bài So sánh','Compare problem','Two quantities are compared to find the greater, lesser or the difference.'],['bài Nhóm bằng nhau','Equal Groups problem','Number of groups × group size = total.'],['bài So sánh nhân','Multiplicative Comparison problem','One quantity is a number of times another.'],['phần – phần – tổng','Part-Part-Whole','Parts combine into a whole.'],['đại lượng chưa biết','unknown','The quantity not given in a problem.'],['thông tin thừa','irrelevant information','Information not needed for the solution approach.'],['ví dụ có lời giải','worked-out example','An example showing how a problem is solved with one solution.'],['phương pháp giải','solution approach / method','The general strategy and steps used to solve a problem.'],['cấu trúc toán học','underlying mathematical structure','How quantities relate and align with an operation.'],['thẻ nhắc','prompt card','A visual guide of steps for solving a problem type.'],['chiến lược từ khoá','key word strategy','Linking words to operations; the WWC advises against it.']);
 window.__selftest=window.__selftest||{};
 window.__selftest['m4:1']=function(){var d=document;d.querySelector('[data-act="m4type"][data-i="2"]').click();d.querySelector('[data-act="m4unk"][data-i="0"]').click();d.querySelector('[data-act="m4ctx"][data-i="1"]').click();};
@@ -1650,6 +1662,134 @@ window.__selftest['m5:1']=function(){var d=document;function ranks(){return Arra
 
 </script>
 <script>
+/* toolkit-src/40-review.js */
+(function(){
+var TK=window.TK,S=TK.S,ACT=TK.ACT,$=TK.$,T=TK.T,I=TK.I,P=TK.P,L=TK.L,esc=TK.esc,hero=TK.hero,panel=TK.panel,callout=TK.callout,noteBox=TK.noteBox,list=TK.list;
+function done(){return TK.doneBtn(TK.curTab());}
+/* ================= sources ================= */
+var B='https://ies.ed.gov/ncee/rel/math-support-grades-3-6';
+var U={intro:B+'/intro',m1:B+'/teach-pd-module1-math-lang-resources',m4:B+'/module4',
+ w0:B+'/pdf/Mod0_Intro_PartWrkbk_MITE.pdf',w1:B+'/pdf/Mod1_MathLang_PartWrkbk_MITE.pdf',w2:B+'/pdf/Mod2_Represent_PartWrkbk_MITE.pdf',w3:B+'/pdf/Mod3_NumLine_PartWrkbk_MITE.pdf',w5:B+'/pdf/Mod5_SysInst_PartWrkbk_MITE.pdf',
+ lg:B+'/pdf/LeaderGuide_MITE.pdf',gl:B+'/pdf/Glossary_MITE.pdf',ov:B+'/pdf/Overview_MITE.pdf',
+ pg:'https://ies.ed.gov/ncee/WWC/Docs/PracticeGuide/WWC2021006-Math-PG.pdf',pgs:'https://ies.ed.gov/ncee/WWC/Docs/PracticeGuide/WWC-PraxGuide-Elementary-Math-Summary-508c.pdf',cite:'https://ies.ed.gov/use-work/resource-library/resources'};
+function a(u,t){return '<a href="'+u+'" target="_blank" rel="noopener">'+esc(t)+'</a>';}
+var SRC=[
+ ['Trang chính','Landing page',[[U.intro,'Mathematics Intervention Toolkit — trang giới thiệu / intro'],[U.m1,'Trang tài nguyên Module 1 (danh sách workbook, video, ứng dụng, giờ học) / Module 1 resources page'],[U.m4,'Trang Module 4 / Module 4 page']]],
+ ['Workbook của người tham gia','Participant workbooks (PDF)',[[U.w0,'Introductory Module Participant Workbook'],[U.w1,'Module 1: Mathematical Language'],[U.w2,'Module 2: Representations'],[U.w3,'Module 3: Number Lines'],[U.w5,'Module 5: Systematic Instruction (tải được tại đường dẫn này; không thấy liệt kê trên trang giới thiệu khi tôi kiểm tra ngày 24/09/2026 / downloadable at this URL; not listed on the intro page when checked on 2026-09-24)']]],
+ ['Tài liệu hướng dẫn','Guides',[[U.lg,'Leader Guide'],[U.gl,'Toolkit Glossary'],[U.ov,'Toolkit Overview']]],
+ ['Cơ sở nghiên cứu (WWC)','Research base (WWC)',[[U.pg,'WWC Practice Guide 2021006 “Assisting Students Struggling with Mathematics: Intervention in the Elementary Grades” (bản đầy đủ / full)'],[U.pgs,'Practice Guide summary']]],
+ ['Video (chỉ đặt link, không nhúng)','Videos (linked, not embedded)',[['https://www.youtube.com/watch?v=0NoSLkDV_Bo','Sort, Explain, and Generalize (Mở đầu / Intro)'],['https://www.youtube.com/watch?v=RKrRU0Lhjig','Explain Reasons Using Mathematical Language (M1)'],['https://www.youtube.com/watch?v=M-KXrcLyEoY','Is it True? (M2)'],['https://www.youtube.com/watch?v=y57r4pxSgRQ','Decimal Addition (M2)'],['https://www.youtube.com/watch?v=wPvZhCP3hBE','Decimal Subtraction (M2)'],['https://www.youtube.com/watch?v=DFHIDgQqI2Q','Benchmark Strategy, Part 1 (M3)'],['https://www.youtube.com/watch?v=lZApIJcHXIw','Benchmark Strategy, Part 2 (M3)'],['https://www.youtube.com/watch?v=vzHeOz1JNWE','Fraction Addition on Number Lines (M3)'],['https://www.youtube.com/watch?v=Q10bGoVVQrs','Fraction Subtraction on Number Lines (M3)'],['https://dwwlibrary.wested.org/resources/1071','WestEd: Number Lines, a Key Representational Tool']]],
+ ['Công cụ được dẫn link','Tools linked',[['https://apps.mathlearningcenter.org/number-line/','Math Learning Center — Number Line app'],['https://www.mathlearningcenter.org/apps','Math Learning Center — apps'],['https://polypad.amplify.com/p','Polypad (virtual manipulatives)']]]];
+var LV={q:['Trích / dịch sát nguồn','Quoted / close translation','good'],c:['Chuyển thể từ nguồn','Adapted from the source',''],o:['Tự soạn theo tinh thần nguồn','Self-authored in the spirit of the source','mark']};
+function lv(k){var x=LV[k];return '<span class="chip '+x[2]+'">'+P(x[0],x[1])+'</span>';}
+/* rows: [module, section vi, section en, source html, level] */
+var MAP=[
+ ['Mở đầu','Năm khuyến nghị (trích nguyên văn tiếng Anh); mục tiêu khoá học','Five recommendations (quoted); course goals',a(U.w0,'Workbook Mở đầu, H1 tr.3, H2 tr.4')+' · '+a(U.pg,'WWC PG'),'q'],
+ ['Mở đầu','Giờ học từng module (2 / 6 / 6 / 6 / 6 / 2), khoảng 28 giờ; hình thức kết hợp','Hours per module; about 28 hours; hybrid format',a(U.m1,'Trang tài nguyên')+' (“Course structure”) · '+a(U.w0,'Workbook Mở đầu tr.1'),'c'],
+ ['Mở đầu','Cấu trúc 7 tab, checklist khoá học, đi thử phần tự học','7-tab structure, course checklist, online walk-through',a(U.w0,'Workbook Mở đầu tr.2, H5 tr.7, H6 tr.8')+' · '+a(U.w1,'Workbook M1 tr.3–5'),'c'],
+ ['Mở đầu','Hỏi đáp: đối tượng, không cần chương trình riêng, không bắt đầu từ Module 5','FAQ: audience, no specific programme, do not start with Module 5',a(U.w0,'Workbook Mở đầu tr.1')+' · '+a(U.lg,'Leader Guide (phần chọn module)'),'c'],
+ ['Mở đầu','Routine “Sắp xếp, giải thích, khái quát hoá”: 3 bước, câu mẫu, câu hỏi khái quát','Sort, Explain, and Generalize: 3 steps, sentence starters, generalizing questions',a(U.w0,'Workbook Mở đầu, H3 tr.5 và Phụ lục A (One-Page Overview)')+' · '+a('https://www.youtube.com/watch?v=0NoSLkDV_Bo','video'),'c'],
+ ['Mở đầu','Bộ 8 thẻ phân số so với mốc 0, 1/2, 1 và lời giải thích từng thẻ','The 8 fraction cards vs benchmarks and per-card explanations','Không lấy từ Toolkit (thẻ gốc khác) / Not from the Toolkit (its cards differ)','o'],
+ ['Module 1','Khuyến nghị, 3 bước triển khai, bảng chiến lược','Recommendation, 3 implementation steps, strategies chart',a(U.w1,'Workbook M1 tr.2, H1 tr.8–9')+' · '+a(U.pg,'WWC PG tr.11–20'),'q'],
+ ['Module 1','Sơ đồ từ vựng, đóng vai/cử chỉ, danh sách thuật ngữ dùng chung (ví dụ Reduce→Simplify …)','Graphic organizers, role play, shared word list (e.g. Reduce→Simplify …)',a(U.w1,'Workbook M1, H2 tr.10–16, H4 tr.19–20')+' · '+a(U.pg,'WWC PG tr.11–20'),'c'],
+ ['Module 1','Ba thuật ngữ mẫu cho sơ đồ (phân số đơn vị, đa giác, ước) và các thẻ ví dụ / phản ví dụ','Three sample organizer terms and example / non-example cards',a(U.w1,'Workbook M1, H2 Ví dụ 1, H4 (polygon, factor), H7 tr.23')+' — định nghĩa lấy từ nguồn; các thẻ tự soạn / definitions from the source; cards self-authored','o'],
+ ['Module 1','Hai thử thách A, B và lời khuyên của hội đồng chuyên gia','Challenges A and B and the panel’s advice',a(U.w1,'Workbook M1, H5 tr.21')+' · '+a(U.pg,'WWC PG tr.39'),'q'],
+ ['Module 1','Routine “Giải thích lý do bằng ngôn ngữ toán học”: 6 bước, thời gian, câu mẫu, câu hỏi tiếp nối','Explaining Reasons routine: 6 steps, timings, frames, follow-up questions',a(U.w1,'Workbook M1, R1 tr.42–43')+' · '+a('https://www.youtube.com/watch?v=RKrRU0Lhjig','video'),'c'],
+ ['Module 1','Câu đố số nguyên (A 1025, B 827, C 220, D 101) và các lý do mẫu','Whole-number puzzle and sample reasons',a(U.w1,'Workbook M1, R5 Puzzle 1 tr.49'),'c'],
+ ['Module 1','Câu đố phân số và số thập phân; “máy soi lời giải thích”; thư viện câu mẫu; định nghĩa thân thiện','Fraction and decimal puzzles; explanation studio; frame library; student-friendly definitions','Tự soạn (Toolkit có 7 câu đố khác) / Self-authored (the Toolkit has 7 different puzzles)','o'],
+ ['Module 2','Khuyến nghị, 4 bước triển khai, bảng chiến lược, định nghĩa biểu diễn cụ thể / bán cụ thể / trừu tượng','Recommendation, 4 steps, strategies, definitions of concrete / semi-concrete / abstract',a(U.w2,'Workbook M2 tr.2, H1 tr.9–10, H2 tr.11–17')+' · '+a(U.pg,'WWC PG tr.21–28'),'q'],
+ ['Module 2','Bảng gợi ý biểu diễn theo chủ đề','Suggested representations by topic',a(U.w2,'Workbook M2, H2 (Table 1)')+' · '+a(U.pg,'WWC PG Rec. 3')+' — tôi rút gọn / summarised by me','c'],
+ ['Module 2','Bài cộng, trừ số thập phân bằng khối cơ số mười (1,37+1,62; 1,38+0,87; 3,74−1,31; 1,38−0,87)','Decimal addition/subtraction with base ten blocks',a(U.w2,'Workbook M2, H4 tr.19–20, H5 tr.21–22')+' · '+a('https://www.youtube.com/watch?v=y57r4pxSgRQ','video cộng')+' · '+a('https://www.youtube.com/watch?v=wPvZhCP3hBE','video trừ')+'. Lưu ý: bài thứ hai của H5 in dấu “+” dù lời hướng dẫn là “lấy đi” — app dùng phép trừ / the second H5 problem is printed with “+” though the text says “take away”; the app uses subtraction','c'],
+ ['Module 2','Ba thử thách A, B, C','Challenges A, B, C',a(U.w2,'Workbook M2, H6 tr.23–25')+' · '+a(U.pg,'WWC PG tr.27–28'),'q'],
+ ['Module 2','Routine “Có đúng không?”: 3 bước, thời gian, câu mẫu, ba cách làm cho đúng','Is it True? routine: 3 steps, timings, frames, three ways to make it true',a(U.w2,'Workbook M2, R1 tr.48–49')+' · '+a('https://www.youtube.com/watch?v=M-KXrcLyEoY','video'),'c'],
+ ['Module 2','Các phát biểu mẫu (phân số, số thập phân) và “phòng thí nghiệm phân số”','Sample statements and the fraction studio',a(U.w2,'Workbook M2, R5 tr.53–54 (chủ đề, từ vựng) / topics and vocabulary')+' — số liệu tự soạn / numbers self-authored','o'],
+ ['Module 3','Khuyến nghị, 3 bước triển khai, chiến lược, câu hỏi trọng tâm','Recommendation, 3 steps, strategies, key questions',a(U.w3,'Workbook M3 tr.2–3, H1 tr.9–10')+' · '+a(U.pg,'WWC PG tr.29–39'),'q'],
+ ['Module 3','Mô hình cộng, trừ phân số trên trục số (nhảy cung)','Fraction addition/subtraction jumps on a number line',a(U.w3,'Workbook M3, H1–H2, H5–H6')+' · '+a('https://www.youtube.com/watch?v=vzHeOz1JNWE','video cộng')+' · '+a('https://www.youtube.com/watch?v=Q10bGoVVQrs','video trừ'),'c'],
+ ['Module 3','Ba thử thách A, B, C (mô hình diện tích, nhân chéo, hiểu trục số)','Challenges A, B, C (area model, cross-multiplying, understanding number lines)',a(U.w3,'Workbook M3, H7 tr.34–36')+' · '+a(U.pg,'WWC PG tr.39'),'q'],
+ ['Module 3','Routine đặt phân số lên trục số: 5 bước, thời gian, câu hỏi, phiếu ra cửa','Benchmark placement routine: 5 steps, timings, questions, exit task',a(U.w3,'Workbook M3, R1 tr.60–61, phần giới thiệu tr.57–59')+' · '+a('https://www.youtube.com/watch?v=DFHIDgQqI2Q','video 1')+' · '+a('https://www.youtube.com/watch?v=lZApIJcHXIw','video 2'),'c'],
+ ['Module 3','4 bộ thẻ (đơn vị, không phải đơn vị, bằng nhau, và Bộ 4 mở rộng theo sách Stage 6) và kiểm tra vị trí','Four card sets and placement checking','Ba bộ đầu theo phân loại của Toolkit (tr.57–58), phân số cụ thể tự soạn; Bộ 4 hoàn toàn tự soạn / first three follow the Toolkit’s categories, fractions self-authored; Set 4 self-authored','o'],
+ ['Module 4','Khuyến nghị, 5 bước triển khai, bảng từ ngữ khó (Table 5.1), ví dụ thay đổi / nhóm bằng nhau / thông tin thừa, vì sao không dạy từ khoá (Table 5.2), các trở ngại và lời khuyên','Recommendation, 5 steps, Table 5.1, worked examples, why not key words (Table 5.2), obstacles and advice',a(U.pg,'WWC PG Rec. 5 tr.40–50 (Ví dụ 5.1–5.4, Bảng 5.1–5.2)')+' · '+a(U.lg,'Leader Guide, Challenge E tr.51'),'c'],
+ ['Module 4','Bốn dạng bài (Thay đổi, So sánh, Nhóm bằng nhau, So sánh nhân) và mục tiêu nội dung của module','The four problem types and the module’s content focus',a(U.lg,'Leader Guide, Phụ lục A tr.63–64')+' · '+a(U.pg,'WWC PG tr.40–41'),'c'],
+ ['Module 4','Routine “Diễn lại, biểu diễn và giải”: tên routine lấy từ Leader Guide; các bước, thời gian, mô phỏng và 6 bài toán','Act Out, Represent, and Solve: name from the Leader Guide; steps, timings, simulator, 6 problems',a(U.lg,'Leader Guide (tên routine, video)')+' · '+a(U.m4,'trang Module 4')+' — workbook Module 4 không công khai; các bước và thời gian là đề xuất của tôi / no public Module 4 workbook; steps and timings are my proposal','o'],
+ ['Module 5','Khuyến nghị, 5 bước triển khai, bảng chiến lược, số dễ tiếp cận, dãy bài mẫu (so sánh, cộng, trừ)','Recommendation, 5 steps, strategies, accessible numbers, example sequences',a(U.w5,'Workbook M5, H1 tr.5–6, H2 tr.7, H3 tr.8–10')+' · '+a(U.pg,'WWC PG tr.5–10'),'q'],
+ ['Module 5','Trò chơi Aim Low / Aim High, phản hồi, routine phân số bằng nhau (luật chơi, câu hỏi thảo luận)','Aim Low / Aim High, feedback, equivalence card sort (rules, discussion questions)',a(U.w5,'Workbook M5, H4 tr.11–14, H6 tr.15–18, H7 tr.19, H8 tr.20'),'c'],
+ ['Module 5','Máy kiểm tra thứ tự bài, bộ tạo bài theo chặng, giá trị vòng quay (A = 1–6, B = 7–12), thẻ phân số bằng nhau','Sequencing checker, stage generator, spinner values, equivalence cards',a(U.w5,'Workbook M5, H3 (khung phân chặng) / staging framework')+' — công cụ và số liệu tự soạn / tools and numbers self-authored','o'],
+ ['Chung','Bảng thuật ngữ: định nghĩa tiếng Anh','Glossary: English definitions',a(U.gl,'Toolkit Glossary')+' · '+a(U.pg,'WWC PG tr.56–57'),'c'],
+ ['Chung','Bảng thuật ngữ: từ tiếng Việt; toàn bộ câu hỏi kiểm tra và giải thích; ví dụ tình huống Việt Nam','Vietnamese terms; all knowledge checks and explanations; Vietnamese-context examples','Tự dịch / tự soạn (xem bảng kiểm) / Self-translated or self-authored (see the checklist)','o'],
+ ['Chung','Đối chiếu với sách Stage 6 (Unit, bài tập)','Mapping to the Stage 6 book','Sách Stage 6 Learner’s Book (Vol 1, Vol 2) của trường, không có link công khai; dựa vào mục lục và các đoạn đọc được / the school’s Stage 6 Learner’s Book, no public link; based on the contents pages and readable passages','o']];
+function v0(){
+  return hero('Nguồn tham khảo và mức độ chuyển thể','Sources and degree of adaptation','Mỗi phần nội dung trong app đi kèm nguồn, số trang hoặc handout và mức độ: trích/dịch sát, chuyển thể, hay tự soạn. Hãy dùng phần này để kiểm chứng.','Every part of the app is listed with its source, page or handout, and how closely it follows the source.')+
+  panel(T('Cách trích dẫn','How to cite'),'<p style="font-size:13.5px">'+T('App là <b>bản chuyển thể độc lập</b>, không phải sản phẩm chính thức của IES và chưa được thẩm định bản dịch. Tài liệu Toolkit thuộc phạm vi công cộng và đề nghị trích dẫn như sau:','This app is an <b>independent adaptation</b>, not an official IES product, and its translation has not been reviewed. The Toolkit is in the public domain and asks to be cited as:')+'</p>'+
+   '<p style="font-size:13px;color:var(--muted)">Brodesky, A., Fagan, E., &amp; Coleman, K. (2026). <i>Mathematics Intervention Toolkit</i> (REL 2026-004). U.S. Department of Education, Institute of Education Sciences, National Center for Education Evaluation and Regional Assistance. '+a(U.cite,U.cite)+'</p>'+
+   '<p style="font-size:13px;color:var(--muted)">Fuchs, L. S., Newman-Gonchar, R., Schumacher, R., Dougherty, B., Bucka, N., Karp, K. S., Woodward, J., Clarke, B., Jordan, N. C., Gersten, R., Jayanthi, M., Keating, B., &amp; Morgan, S. (2021). <i>Assisting students struggling with mathematics: Intervention in the elementary grades</i> (WWC 2021006). U.S. Department of Education, IES, NCEE. '+a(U.pg,U.pg)+'</p>')+
+  panel(T('Danh sách nguồn có link','Source list with links'),SRC.map(function(g){return '<h4>'+T(g[0],g[1])+'</h4><ul class="plain">'+g[2].map(function(l){return '<li>'+a(l[0],l[1])+'</li>';}).join('')+'</ul>';}).join(''))+
+  panel(T('Từng phần của app lấy từ đâu','Where each part of the app comes from'),
+   '<div class="row" style="margin-bottom:8px">'+lv('q')+lv('c')+lv('o')+'</div><div class="tw"><table><thead><tr><th>Module</th><th>'+P('Nội dung trong app','Content in the app')+'</th><th>'+P('Nguồn (link, trang / handout)','Source (link, page / handout)')+'</th><th>'+P('Mức độ','Level')+'</th></tr></thead><tbody>'+
+   MAP.map(function(r){return '<tr><td style="white-space:nowrap"><b>'+esc(r[0])+'</b></td><td>'+T(r[1],r[2])+'</td><td style="font-size:13px">'+r[3]+'</td><td>'+lv(r[4])+'</td></tr>';}).join('')+'</tbody></table></div>'+
+   '<p style="font-size:12.5px;color:var(--muted);margin-top:8px">'+T('Số trang là số in ở chân trang của workbook (Participant Workbook) và của WWC Practice Guide, đối chiếu ngày 24/09/2026. “Trích/dịch sát” nghĩa là ý và câu chữ theo nguồn nhưng bản tiếng Việt là bản dịch của tôi.','Page numbers are the printed footers of the Participant Workbooks and the WWC Practice Guide, checked on 2026-09-24. “Quoted / close translation” means the ideas and wording follow the source, but the Vietnamese is my own translation.')+'</p>')+
+  panel(T('Những điều cần biết','Things to know'),list([
+   ['Bản tiếng Việt là bản dịch tham khảo do AI hỗ trợ, <b>chưa có giáo viên Toán hoặc biên dịch viên thẩm định</b>. Dùng “Bảng kiểm thẩm định” để rà soát.','The Vietnamese is an AI-assisted reference translation, <b>not reviewed by a maths teacher or professional translator</b>. Use the review checklist to check it.'],
+   ['Workbook Module 4 không công khai. Module 4 trong app được dựng từ WWC Practice Guide và Leader Guide; các bước, thời gian và bài toán của routine là đề xuất của tôi.','There is no public Module 4 workbook. Module 4 here is built from the WWC Practice Guide and Leader Guide; the routine’s steps, timings and problems are my proposal.'],
+   ['Thẻ, câu đố, bài toán, số liệu trò chơi và câu hỏi kiểm tra phần lớn do tôi soạn theo tinh thần Toolkit; thẻ và đáp án gốc của Toolkit nằm trong file PDF (không tách được đầy đủ).','Cards, puzzles, problems, game values and knowledge checks are mostly self-authored in the spirit of the Toolkit; the Toolkit’s own cards and answer keys are inside its PDFs (which could not be extracted fully).'],
+   ['Tôi không xem nội dung video. Các ô ghi chú khi xem video dùng câu hỏi quan sát trong workbook ở Mở đầu (H4) hoặc do tôi soạn ở các module khác.','I did not view the videos. The video note boxes use the workbook’s observation questions in the Introduction (H4) and my own questions in other modules.'],
+   ['Sách Stage 6: chữ tiếng Việt trong PDF bị mất dấu khi tách văn bản, nên thuật ngữ Việt do tôi chọn có thể chưa trùng hoàn toàn với cách gọi trong sách.','Stage 6 book: the Vietnamese text lost its diacritics when extracted, so my Vietnamese terms may not fully match the book’s wording.']]))+
+  '<div class="row end"><button class="btn pri" data-act="go" data-i="1">'+I('Mở bảng kiểm thẩm định','Open the review checklist')+' →</button></div>';
+}
+/* ================= review checklist ================= */
+var collected=false;
+function collect(){
+  if(collected)return;var cur0=TK.cur(),tabs0=JSON.stringify(S.tabs);
+  TK.MODS.forEach(function(m){if(!m||m.key==='rv'||m.key==='gl')return;TK.setCur(m);m.tabs.forEach(function(t,ti){S.tabs[m.key]=ti;try{t.view();}catch(e){}});});
+  S.tabs=JSON.parse(tabs0);TK.setCur(cur0);collected=true;}
+function txt(h){return String(h).replace(/<br\s*\/?>/g,' | ').replace(/<[^>]+>/g,'').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/\s+/g,' ').trim();}
+function hash(s){var h=5381;for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return 'h'+(h>>>0).toString(36);}
+var MN={m0:'Mở đầu',m1:'Module 1 · Ngôn ngữ toán học',m2:'Module 2 · Biểu diễn',m3:'Module 3 · Trục số',m4:'Module 4 · Bài toán có lời văn',m5:'Module 5 · Dạy học có hệ thống',gl:'Thuật ngữ'};
+function buildItems(){
+  collect();var out=[],seen={};
+  function add(m,cat,en,vi){var k=hash(txt(en));if(seen[k])return;seen[k]=1;out.push({m:m,cat:cat,en:en,vi:vi,h:k});}
+  TK.MODS.forEach(function(md){if(!md||md.key==='rv'||md.key==='gl')return;var c=md.cfg||{},k=md.key;
+    if(c.introTitle)add(k,'Tiêu đề & dẫn nhập / Title and lead-in',c.introTitle[1]+' — '+c.introLede[1],c.introTitle[0]+' — '+c.introLede[0]);
+    if(c.rec)add(k,'Khuyến nghị / Recommendation',c.rec,(c.recVi||'').replace(/^Bản dịch tham khảo:\s*/,''));
+    (c.impl||[]).forEach(function(s){add(k,'Bước triển khai / Implementation step',s[1],s[0]);});
+    (c.strategies||[]).forEach(function(s){add(k,'Chiến lược / Strategy',s.h[1]+': '+s.t[1],s.h[0]+': '+s.t[0]);});
+    (c.strengthen||[]).forEach(function(s){add(k,'Gợi ý củng cố / Strengthen strategies',s[2],s[1]);});
+    (c.rate||[]).forEach(function(s){add(k,'Tự đánh giá / Self-rating',s[2],s[1]);});});
+  TK.EXTRA.forEach(function(e){add(e.m,e.cat,e.en,e.vi);});
+  TK.REV.forEach(function(e){add(e.m,'Thử thách & lời khuyên / Challenge and advice',e.en,e.vi);});
+  Object.keys(TK.QS).forEach(function(key){var q=TK.QS[key],m=key.split(':')[0];
+    add(m,'Câu hỏi kiểm tra / Knowledge check',q.en+' <br><b>Answer:</b> '+q.o[q.a][1]+' <br><b>Why:</b> '+q.we,q.vi+' <br><b>Đáp án:</b> '+q.o[q.a][0]+' <br><b>Vì sao:</b> '+q.wv);});
+  (TK.BASE||[]).concat(TK.GL).forEach(function(g){add('gl','Thuật ngữ / Term',g[1]+(g[2]?' — '+g[2]:''),g[0]);});
+  return out;}
+function v1(){
+  var items=buildItems(),by={},order=[];items.forEach(function(it){if(!by[it.m]){by[it.m]=[];order.push(it.m);}by[it.m].push(it);});
+  order.sort(function(a,b){var na=a==='gl'?9:+a.slice(1),nb=b==='gl'?9:+b.slice(1);return na-nb;});
+  var tot=items.length,ok=0,fix=0;items.forEach(function(it){var s=TK.getP('chk.'+it.h+'.s');if(s==='ok')ok++;else if(s==='fix')fix++;});
+  var h=hero('Bảng kiểm thẩm định bản dịch và nội dung','Translation and content review checklist','Dành cho giáo viên Toán trong tổ. Với mỗi mục, đối chiếu tiếng Anh (nguồn) với tiếng Việt trong app, chọn “Đúng” hoặc “Cần sửa” và ghi đề xuất. Kết quả lưu trên máy bạn; bấm “Tạo bản tổng hợp” để sao chép và gửi lại.','For maths teachers on the team. For each item, compare the English (source) with the Vietnamese in the app, choose “Correct” or “Needs change” and write a suggestion. Results stay on your device; press “Create summary” to copy and send back.');
+  h+=panel(T('Cách dùng','How to use'),list([['Mở từng nhóm (Module), đọc cột tiếng Anh và cột tiếng Việt.','Open each group (Module) and read the English and Vietnamese columns.'],['Chọn “Đúng” nếu bản Việt chính xác và tự nhiên; chọn “Cần sửa” và ghi cách sửa nếu chưa.','Choose “Correct” if the Vietnamese is accurate and natural; choose “Needs change” and write the fix otherwise.'],['Quan tâm đặc biệt: thuật ngữ có trùng với sách Stage 6 của trường không, và nội dung toán có đúng không.','Pay special attention to whether terms match your Stage 6 book, and whether the maths is right.'],['Có thể in / lưu PDF bằng nút “In” để làm trên giấy.','Use the “Print” button to work on paper or save as PDF.']],true)+
+   '<div class="grid2" style="margin-top:8px"><label class="f" for="rv-who"><span>'+T('Người thẩm định','Reviewer')+'</span><input type="text" id="rv-who" data-k="who" value="'+esc(TK.getP('who')||'')+'"></label><label class="f" for="rv-date"><span>'+T('Ngày','Date')+'</span><input type="date" id="rv-date" data-k="date" value="'+esc(TK.getP('date')||'')+'"></label></div>'+
+   '<div class="row" style="margin-top:8px"><span class="chip">'+P('Tổng','Total')+' '+tot+'</span><span class="chip good">'+P('Đúng','Correct')+' '+ok+'</span><span class="chip bad">'+P('Cần sửa','Needs change')+' '+fix+'</span><span class="chip">'+P('Chưa xem','Not yet')+' '+(tot-ok-fix)+'</span><button class="btn sm" data-act="rvprint">'+I('In / lưu PDF','Print / save PDF')+'</button></div>');
+  h+=order.map(function(m){var arr=by[m],mk=0;arr.forEach(function(it){if(TK.getP('chk.'+it.h+'.s'))mk++;});
+    return '<details class="rvgrp"><summary>'+esc(MN[m]||m)+' · '+arr.length+' '+P('mục','items')+' · '+mk+' '+P('đã xem','reviewed')+'</summary><div class="tw"><table class="rvtab"><thead><tr><th>#</th><th>'+P('Tiếng Anh (nguồn)','English (source)')+'</th><th>'+P('Tiếng Việt (trong app)','Vietnamese (in the app)')+'</th><th>'+P('Kết quả','Result')+'</th><th>'+P('Đề xuất sửa','Suggested change')+'</th></tr></thead><tbody>'+
+     arr.map(function(it,i){var s=TK.getP('chk.'+it.h+'.s')||'';return '<tr><td>'+(i+1)+'</td><td style="min-width:220px"><span class="chip" style="font-size:10.5px">'+esc(it.cat)+'</span><div>'+it.en+'</div></td><td style="min-width:220px">'+it.vi+'</td><td><select data-k="chk.'+it.h+'.s" aria-label="result"><option value="">—</option><option value="ok"'+(s==='ok'?' selected':'')+'>'+esc(P('Đúng','Correct'))+'</option><option value="fix"'+(s==='fix'?' selected':'')+'>'+esc(P('Cần sửa','Needs change'))+'</option></select></td><td style="min-width:200px"><input type="text" data-k="chk.'+it.h+'.n" value="'+esc(TK.getP('chk.'+it.h+'.n')||'')+'" aria-label="note"></td></tr>';}).join('')+'</tbody></table></div></details>';}).join('');
+  h+=panel(T('Bản tổng hợp để gửi lại','Summary to send back'),'<div class="row"><button class="btn pri" data-act="rvsum">'+I('Tạo bản tổng hợp','Create summary')+'</button></div><textarea id="out-rv" readonly rows="10" style="margin-top:10px" placeholder="…"></textarea>');
+  return h+done();
+}
+ACT.rvprint=function(){try{window.print();}catch(e){TK.toast(P('Không mở được hộp thoại in','Could not open print'));}};
+ACT.rvsum=function(){
+  var items=buildItems(),t=[],ok=0,fix=0;items.forEach(function(it){var s=TK.getP('chk.'+it.h+'.s');if(s==='ok')ok++;else if(s==='fix')fix++;});
+  t.push('KẾT QUẢ THẨM ĐỊNH / REVIEW RESULT — Hỗ trợ học sinh gặp khó khăn trong môn Toán ở các lớp 3-6');
+  t.push('Người thẩm định / Reviewer: '+(TK.getP('who')||'—')+' · Ngày / Date: '+(TK.getP('date')||'—'));
+  t.push('Tổng '+items.length+' · Đúng '+ok+' · Cần sửa '+fix+' · Chưa xem '+(items.length-ok-fix));t.push('');
+  items.forEach(function(it){var s=TK.getP('chk.'+it.h+'.s'),n=TK.getP('chk.'+it.h+'.n');if(s==='fix'||n){t.push('['+(MN[it.m]||it.m)+'] '+txt(it.cat));t.push('  EN: '+txt(it.en));t.push('  VI: '+txt(it.vi));t.push('  → '+(s==='fix'?'CẦN SỬA':(s==='ok'?'Đúng':'—'))+(n?': '+n:''));t.push('');}});
+  if(!fix&&!items.some(function(it){return TK.getP('chk.'+it.h+'.n');}))t.push('(Chưa có mục nào cần sửa hoặc ghi chú.)');
+  TK.copyOut('out-rv',t.join('\n'));};
+TK.regMod({id:7,key:'rv',nav:['Nguồn & thẩm định','Sources & review'],sub:'Kiểm chứng / Verify',short:['Nguồn & thẩm định'],title:['Nguồn tham khảo và thẩm định','Sources and review'],cfg:{},
+ tabs:[{vi:'Nguồn tham khảo',en:'Sources',tag:'Nguồn',view:v0},{vi:'Bảng kiểm thẩm định',en:'Review checklist',tag:'Thẩm định',view:v1}]});
+})();
+(function(){window.__selftest=window.__selftest||{};window.__selftest['rv:1']=function(){var d=document;var sel=d.querySelector('select[data-k^="chk."]');if(!sel)throw new Error('no review rows');sel.value='fix';sel.dispatchEvent(new Event('input',{bubbles:true}));var inp=d.querySelector('input[data-k$=".n"]');inp.value='thử';inp.dispatchEvent(new Event('input',{bubbles:true}));d.querySelector('[data-act="rvsum"]').click();var v=d.getElementById('out-rv').value;if(v.indexOf('CẦN SỬA')<0)throw new Error('summary missing fix: '+v.slice(0,120));var rows=d.querySelectorAll('select[data-k^="chk."]').length;if(rows<150)throw new Error('too few items '+rows);};})();
+
+</script>
+<script>
 /* toolkit-src/90-tail.js */
 (function(){
 var TK=window.TK,S=TK.S,$=TK.$,T=TK.T,P=TK.P,esc=TK.esc,GL=TK.GL;
@@ -1664,6 +1804,7 @@ function gbind(){
   function draw(){var q=($('#gl-q').value||'').toLowerCase();$('#gl-list').innerHTML=all.filter(function(g){return !q||g[0].toLowerCase().indexOf(q)>=0||g[1].toLowerCase().indexOf(q)>=0||(g[2]||'').toLowerCase().indexOf(q)>=0;}).map(function(g){return '<div class="gl-item"><b>'+esc(g[0])+'</b><span style="font-family:var(--mono);color:var(--muted)">'+esc(g[1])+(g[2]?'<br><span style="font-family:var(--sans);font-size:12.5px">'+esc(g[2])+'</span>':'')+'</span></div>';}).join('')||'<p>—</p>';}
   $('#gl-q').addEventListener('input',draw);draw();
 }
+TK.BASE=BASE;
 TK.regMod({id:6,key:'gl',nav:['Thuật ngữ','Glossary'],sub:'A–Z',short:['Thuật ngữ'],title:['Thuật ngữ Anh–Việt','English–Vietnamese Glossary'],cfg:{},tabs:[{vi:'Thuật ngữ',en:'Glossary',tag:'Anh–Việt',view:gview,bind:gbind}]});
 /* ---------- boot ---------- */
 if(!TK.MODS[S.mod])S.mod=0;
