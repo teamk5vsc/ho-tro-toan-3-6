@@ -423,6 +423,7 @@ function P(vi,en){return S.lang==='vi'?vi:S.lang==='en'?en:vi+' / '+en;}
 function L(vi,en){return S.lang==='en'?en:vi;}
 function BK(){return S.book==='5'?'5':'6';}
 function BOOK(c,k){return (BK()==='5'&&c[k+'5'])||c[k];}
+function LKP(){return BK()==='5'&&cur&&cur.cfg.try5?'s5':'';}
 function gcd(a,b){return b?gcd(b,a%b):a;}
 function lcm(a,b){return a/gcd(a,b)*b;}
 function clamp(x,a,b){return Math.max(a,Math.min(b,x));}
@@ -494,7 +495,7 @@ function tabIntro(){
   return h+doneBtn(curTab());
 }
 function tabTry(){
-  var c=cur.cfg.try,pl=D().plan||(D().plan={mat:{}}),si=pl.set||0,set=c.sets[si];
+  var c=BOOK(cur.cfg,'try'),pl=D().plan||(D().plan={mat:{}}),si=pl.set||0;if(si>=c.sets.length)si=0;var set=c.sets[si];
   var h=hero('Lập kế hoạch, dạy quy trình, ghi lại quan sát','Plan, teach the routine, log what you see','Dạy quy trình ít nhất một lần trước buổi sinh hoạt nhóm B. Lần đầu có thể lâu hơn — không sao. Nên dùng lại với nhóm khác.','Use the routine at least once before PLC Session-B. The first time may take longer, and that is fine. Try it again with another group.');
   h+=panel(T('1. Kế hoạch','1. Plan'),
    '<div class="grid2"><label class="f" for="pl-cls"><span>'+T('Lớp / nhóm','Class / group')+'</span><input type="text" id="pl-cls" data-k="plan.cls" value="'+esc(pl.cls||'')+'" placeholder="5A22"></label>'+
@@ -509,15 +510,15 @@ function tabTry(){
   return h+doneBtn(curTab());
 }
 function logRows(set,si){
-  return set.items.map(function(c,i){var key='l'+si+'_'+i,cur0=getP('log.'+key+'.r')||'';
+  return set.items.map(function(c,i){var key=LKP()+'l'+si+'_'+i,cur0=getP('log.'+key+'.r')||'';
    return '<tr><td>'+c.html()+'</td><td><select data-k="log.'+key+'.r" aria-label="outcome">'+[['','—','—'],['ok','Đúng ngay','Right away'],['hint','Cần gợi ý','Needed prompting'],['no','Chưa đúng','Incorrect']].map(function(o){return '<option value="'+o[0]+'"'+(cur0===o[0]?' selected':'')+'>'+esc(P(o[1],o[2]))+'</option>';}).join('')+'</select></td><td><input type="text" data-k="log.'+key+'.n" value="'+esc(getP('log.'+key+'.n')||'')+'" aria-label="note"></td></tr>';}).join('');
 }
 function summaryTry(){
-  var c=cur.cfg.try,pl=D().plan||{},si=pl.set||0,set=c.sets[si],t=[];
+  var c=BOOK(cur.cfg,'try'),pl=D().plan||{},si=pl.set||0;if(si>=c.sets.length)si=0;var set=c.sets[si],t=[];
   t.push(cur.short[0].toUpperCase()+' — '+L('Tóm tắt buổi dạy','Routine summary'));
   t.push((pl.cls?L('Lớp: ','Class: ')+pl.cls+' · ':'')+(pl.date?L('Ngày: ','Date: ')+pl.date+' · ':'')+L(set.vi,set.en));t.push('');
   t.push(L('Quan sát:','Observations:'));var cnt={ok:0,hint:0,no:0};
-  set.items.forEach(function(c,i){var key='l'+si+'_'+i,r=getP('log.'+key+'.r'),n=getP('log.'+key+'.n');if(r)cnt[r]++;t.push('- '+c.txt()+': '+(r==='ok'?L('đúng ngay','right away'):r==='hint'?L('cần gợi ý','needed prompting'):r==='no'?L('chưa đúng','incorrect'):'—')+(n?' ('+n+')':''));});
+  set.items.forEach(function(c,i){var key=LKP()+'l'+si+'_'+i,r=getP('log.'+key+'.r'),n=getP('log.'+key+'.n');if(r)cnt[r]++;t.push('- '+c.txt()+': '+(r==='ok'?L('đúng ngay','right away'):r==='hint'?L('cần gợi ý','needed prompting'):r==='no'?L('chưa đúng','incorrect'):'—')+(n?' ('+n+')':''));});
   t.push('');t.push(L('Tổng: ','Totals: ')+cnt.ok+' '+L('đúng ngay','right away')+', '+cnt.hint+' '+L('cần gợi ý','prompted')+', '+cnt.no+' '+L('chưa đúng','incorrect'));
   if(pl.pred){t.push('');t.push(L('Dự đoán ban đầu: ','Initial prediction: ')+pl.pred);}
   return t.join('\n');}
@@ -630,7 +631,7 @@ document.addEventListener('input',function(e){
   save();
 });
 document.addEventListener('change',function(e){
-  var el=e.target;if(el.id==='pl-set'){var tb=$('#logrows');if(tb){var si=+el.value;tb.innerHTML=logRows(cur.cfg.try.sets[si],si);}}
+  var el=e.target;if(el.id==='pl-set'){var tb=$('#logrows');if(tb){var si=+el.value;tb.innerHTML=logRows(BOOK(cur.cfg,'try').sets[si],si);}}
 });
 /* export to other parts */
 window.TK={REV:REVREG,EXTRA:EXTRA,GL:GL,S:S,W:W,ACT:ACT,QS:QS,MODS:MODS,regMod:regMod,$:$,$$:$$,esc:esc,T:T,I:I,P:P,L:L,BK:BK,BOOK:BOOK,gcd:gcd,lcm:lcm,clamp:clamp,dec:dec,pct:pct,fr:fr,mixed:mixed,shuffle:shuffle,rnd:rnd,fbar:fbar,save:save,toast:toast,
@@ -721,6 +722,10 @@ function done(){return TK.doneBtn(TK.curTab());}
 var w1={term:0,puz:0,sim:null};
 /* ---------- vocabulary definitions ---------- */
 var DEF={
+ 'square number':['A number you get when you multiply a whole number by itself, e.g. 4 × 4 = 16.','Số chính phương: số thu được khi nhân một số với chính nó, ví dụ 4 × 4 = 16.'],'prime number':['A number with exactly two factors: 1 and itself.','Số nguyên tố: số có đúng hai ước số là 1 và chính nó.'],'composite number':['A number with more than two factors, e.g. 6 (1, 2, 3, 6).','Hợp số: số có nhiều hơn hai ước số, ví dụ 6 (1, 2, 3, 6).'],
+ 'factor of':['A number that divides another with no remainder: 3 is a factor of 12 because 12 ÷ 3 = 4.','Ước số của: 3 là ước số của 12 vì 12 chia cho 3 được 4, không dư.'],'divisible by':['Can be divided with no remainder: 14 is divisible by 2.','Chia hết cho: chia không có số dư, ví dụ 14 chia hết cho 2.'],'odd number':['A whole number that is not divisible by 2.','Số lẻ: số không chia hết cho 2.'],'even number':['A whole number that is divisible by 2.','Số chẵn: số chia hết cho 2.'],
+ 'fraction':['A number that names equal parts of a whole, e.g. 3/4.','Phân số: số chỉ các phần bằng nhau của một đơn vị, ví dụ 3/4.'],'decimal number':['A number written with a decimal point, e.g. 0.25.','Số thập phân: số viết bằng dấu phẩy thập phân, ví dụ 0,25.'],'percentage':['A number of parts out of 100, written with %.','Tỉ số phần trăm: số phần trên một trăm phần, viết với kí hiệu %.'],
+ 'negative number':['A number less than zero, e.g. −3.','Số âm: số nhỏ hơn 0, ví dụ −3.'],'positive number':['A number greater than zero.','Số dương: số lớn hơn 0.'],'integer':['A positive or negative whole number, or zero.','Số nguyên: số dương, số âm hoặc số 0, không phải phân số hay số thập phân.'],'number line':['A line with equally spaced marks showing numbers in order.','Trục số: đường thẳng có các vạch cách đều biểu diễn các số theo thứ tự.'],
  'ones':['The place for digits worth 1 each.','Hàng đơn vị: mỗi chữ số có giá trị bằng chính nó.'],'tens':['The place for groups of 10.','Hàng chục: các nhóm 10.'],'hundreds':['The place for groups of 100.','Hàng trăm: các nhóm 100.'],'thousands':['The place for groups of 1000.','Hàng nghìn: các nhóm 1000.'],
  'digit':['One of the symbols 0–9 used to write numbers.','Chữ số: một trong các kí hiệu 0–9 dùng để viết số.'],'place value':['The value of a digit depends on where it sits in the number.','Giá trị của chữ số phụ thuộc vào hàng mà nó đứng.'],'least':['The smallest value.','Có giá trị nhỏ nhất.'],'greatest':['The largest value.','Có giá trị lớn nhất.'],
  'numerator':['The top number: how many equal parts are counted.','Tử số: số phần bằng nhau được lấy.'],'denominator':['The bottom number: how many equal parts make one whole.','Mẫu số: số phần bằng nhau của một đơn vị.'],'unit fraction':['A fraction whose numerator is 1.','Phân số đơn vị: tử số bằng 1.'],
@@ -749,6 +754,27 @@ var PUZ=[
   {k:'C',dv:0.55,txt:'0.55',r:[['The only number with the same digit (5) in the tenths place and the hundredths place.','Là số duy nhất có cùng chữ số 5 ở hàng phần mười và hàng phần trăm.']]},
   {k:'D',dv:5.05,txt:'5.05',r:[['The only number with a digit other than 0 in the ones place.','Là số duy nhất có chữ số khác 0 ở hàng đơn vị.'],['The number with the greatest value.','Là số có giá trị lớn nhất.']]}],
   ['ones','tenths','hundredths','decimal point','digit','place value','least','greatest'])];
+/* Stage 5 puzzles: Units 2.2–2.3 (square, prime, composite), 4.2 (fractions, decimals, percentages), 3.2 (positive and negative numbers) */
+var PUZ5=[
+ W1('s5p1','Số chính phương, số nguyên tố, hợp số','Square, prime and composite numbers',[
+  {k:'A',txt:'9',r:[['The only odd composite number: 9 has the factors 1, 3 and 9.','Là hợp số lẻ duy nhất: 9 có các ước số 1, 3 và 9.'],['The only square number with one digit (3 × 3 = 9).','Là số chính phương duy nhất có một chữ số (3 × 3 = 9).']]},
+  {k:'B',txt:'16',r:[['The only square number with two digits (4 × 4 = 16).','Là số chính phương duy nhất có hai chữ số (4 × 4 = 16).'],['The only number divisible by 8.','Là số duy nhất chia hết cho 8.'],['The number with the greatest value.','Là số có giá trị lớn nhất.']]},
+  {k:'C',txt:'7',r:[['The only prime number: it has exactly two factors, 1 and 7.','Là số nguyên tố duy nhất: chỉ có đúng hai ước số là 1 và 7.'],['The number with the least value.','Là số có giá trị nhỏ nhất.']]},
+  {k:'D',txt:'12',r:[['The only number that is neither a square number nor a prime number.','Là số duy nhất không phải số chính phương và cũng không phải số nguyên tố.'],['The only number divisible by both 3 and 4.','Là số duy nhất chia hết cho cả 3 và 4.']]}],
+  ['square number','prime number','composite number','factor of','divisible by','odd number','even number','greatest','least']),
+ W1('s5p2','Phân số, số thập phân, tỉ số phần trăm','Fractions, decimals and percentages',[
+  {k:'A',html:function(){return fr(1,2);},txt:'1/2',r:[['The only fraction; the others are decimals or a percentage.','Là phân số duy nhất; các số còn lại là số thập phân hoặc tỉ số phần trăm.'],['The only one equal to 50%.','Là số duy nhất bằng 50%.']]},
+  {k:'B',dv:0.25,txt:'0.25',r:[['The number with the least value.','Là số có giá trị nhỏ nhất.'],['The only decimal with two decimal places.','Là số thập phân duy nhất có hai chữ số thập phân.']]},
+  {k:'C',txt:'75%',r:[['The only percentage.','Là tỉ số phần trăm duy nhất.'],['The one with the greatest value.','Là số có giá trị lớn nhất.']]},
+  {k:'D',dv:0.7,txt:'0.7',r:[['The only one equal to 7 tenths (7/10).','Là số duy nhất bằng 7 phần mười (7/10).'],['The only decimal with one decimal place.','Là số thập phân duy nhất có một chữ số thập phân.']]}],
+  ['fraction','decimal number','percentage','tenths','hundredths','equivalent','greater than','less than']),
+ W1('s5p3','Số âm và số dương','Positive and negative numbers',[
+  {k:'A',txt:'−3',r:[['The only odd number.','Là số lẻ duy nhất.']]},
+  {k:'B',txt:'4',r:[['The only positive number.','Là số dương duy nhất.'],['The number with the greatest value.','Là số có giá trị lớn nhất.']]},
+  {k:'C',txt:'−10',r:[['The number with the least value: it is furthest to the left on the number line.','Là số có giá trị nhỏ nhất: nằm xa nhất về bên trái trên trục số.'],['The only number with two digits.','Là số duy nhất có hai chữ số.']]},
+  {k:'D',txt:'0',r:[['The only number that is neither positive nor negative.','Là số duy nhất không phải số dương cũng không phải số âm.']]}],
+  ['negative number','positive number','integer','number line','greater than','less than','greatest','least'])];
+
 function itemHTML(it){if(it.html)return it.html();if(it.dv!==undefined)return dec(it.dv,2).replace(/^(\d+)$/,'$1');return esc(it.txt);}
 /* ---------- shapes for graphic-organizer sorter ---------- */
 function shp(kind){var s='<svg width="64" height="52" viewBox="0 0 64 52" role="img" aria-label="'+kind+'" style="fill:none;stroke:var(--ink);stroke-width:2.5;stroke-linejoin:round">';
@@ -860,11 +886,12 @@ function v3(){
 }
 function simNew(){w1.sim={phase:'choose',choice:null,dist:null,missing:null,reason:null,heard:{},apply:{k:null,r:null,voc:{}},custom:''};}
 function bindSim(){simNew();renderSim();}
-function pz(){return PUZ[w1.puz];}
+function PZS(){return TK.BK()==='5'?PUZ5:PUZ;}
+function pz(){return PZS()[w1.puz]||PZS()[0];}
 function tiles(sel,miss){return '<div class="row" style="justify-content:center;margin:12px 0">'+pz().items.map(function(it){var st=(sel===it.k?' sel':'')+(miss===it.k?' no':'');return '<span class="sc'+st+'" style="min-width:86px;font-size:22px"><small style="font-size:12px;color:var(--muted)">'+it.k+'</small>'+itemHTML(it)+'</span>';}).join('')+'</div>';}
 function reasonOptions(k,name){var it=pz().items.filter(function(x){return x.k===k;})[0];return it.r.map(function(r,i){return '<label class="row" style="margin-bottom:4px"><input type="radio" name="'+name+'" value="'+i+'"> '+T(r[1],r[0])+'</label>';}).join('');}
 function renderSim(){
-  $('#m1-psel').innerHTML=PUZ.map(function(p,i){return '<button class="btn sm'+(i===w1.puz?' pri':'')+'" data-act="m1puz" data-i="'+i+'">'+I(p.vi,p.en)+'</button>';}).join('');
+  $('#m1-psel').innerHTML=PZS().map(function(p,i){return '<button class="btn sm'+(i===w1.puz?' pri':'')+'" data-act="m1puz" data-i="'+i+'">'+I(p.vi,p.en)+'</button>';}).join('');
   var s=w1.sim,p=pz(),h='';
   var flow=['choose','share','vocab','apply','wrap'],labs=[['2 · Chọn','2 · Choose'],['3 · Chia sẻ','3 · Share'],['4 · Từ vựng','4 · Vocabulary'],['5 · Áp dụng','5 · Apply'],['6 · Tổng kết','6 · Wrap up']];
   h+='<div class="flow">'+flow.map(function(f,i){var cls=f===s.phase?'on':(flow.indexOf(s.phase)>i?'done':'');return '<span class="'+cls+'">'+P(labs[i][0],labs[i][1])+'</span>';}).join('')+'</div>';
@@ -934,8 +961,9 @@ TK.regMod({id:1,key:'m1',nav:['Ngôn ngữ toán','Math Language'],sub:'Module 1
   {vi:'Thử trong lớp',en:'Try It! Routine',tag:'Tab 5',view:TK.tabTry},
   {vi:'Sinh hoạt nhóm B',en:'PLC Session-B',tag:'Tab 6',view:TK.tabPLCB},
   {vi:'Tổng kết',en:'Wrap-Up',tag:'Tab 7',view:TK.tabWrap}]});
-PUZ.forEach(function(p){p.items.forEach(function(it){it.r.forEach(function(r){TK.EXTRA.push({m:'m1',cat:'Câu đố Số nào không cùng nhóm? — lý do (một phần tự soạn) / Puzzle reasons (partly self-authored)',en:p.en+' · '+it.k+' ('+it.txt+'): '+r[0],vi:p.vi+' · '+it.k+' ('+it.txt+'): '+r[1]});});});});
-var VIN={'ones':'hàng đơn vị','tens':'hàng chục','hundreds':'hàng trăm','thousands':'hàng nghìn','digit':'chữ số','place value':'giá trị theo hàng','least':'nhỏ nhất','greatest':'lớn nhất','numerator':'tử số','denominator':'mẫu số','unit fraction':'phân số đơn vị','greater than':'lớn hơn','less than':'nhỏ hơn','equivalent':'bằng nhau','simplest form':'dạng tối giản','improper fraction':'phân số lớn hơn 1','mixed number':'hỗn số','tenths':'phần mười','hundredths':'phần trăm','decimal point':'dấu phẩy thập phân'};
+(function(c){c.try5=Object.assign({},c.try,{sets:PUZ5.map(function(p){return {vi:p.vi,en:p.en,items:p.items.map(function(it){return {html:function(){return '<b>'+it.k+'</b> · '+itemHTML(it);},txt:function(){return it.k+' '+it.txt;}};})};})});})(TK.MODS[1].cfg);
+PUZ.concat(PUZ5).forEach(function(p){p.items.forEach(function(it){it.r.forEach(function(r){TK.EXTRA.push({m:'m1',cat:'Câu đố Số nào không cùng nhóm? — lý do (một phần tự soạn) / Puzzle reasons (partly self-authored)',en:p.en+' · '+it.k+' ('+it.txt+'): '+r[0],vi:p.vi+' · '+it.k+' ('+it.txt+'): '+r[1]});});});});
+var VIN={'ones':'hàng đơn vị','tens':'hàng chục','hundreds':'hàng trăm','thousands':'hàng nghìn','digit':'chữ số','place value':'giá trị theo hàng','least':'nhỏ nhất','greatest':'lớn nhất','numerator':'tử số','denominator':'mẫu số','unit fraction':'phân số đơn vị','greater than':'lớn hơn','less than':'nhỏ hơn','equivalent':'bằng nhau','simplest form':'dạng tối giản','improper fraction':'phân số lớn hơn 1','mixed number':'hỗn số','tenths':'phần mười','hundredths':'phần trăm','decimal point':'dấu phẩy thập phân','square number':'số chính phương','prime number':'số nguyên tố','composite number':'hợp số','factor of':'ước số của','divisible by':'chia hết cho','odd number':'số lẻ','even number':'số chẵn','fraction':'phân số','decimal number':'số thập phân','percentage':'tỉ số phần trăm','negative number':'số âm','positive number':'số dương','integer':'số nguyên','number line':'trục số'};
 Object.keys(DEF).forEach(function(k){TK.GL.push([VIN[k]||k,k,DEF[k][0]]);});
 TK.GL.push(['sơ đồ tổ chức thông tin','graphic organizer','A visual display of a term: definition, characteristics, examples, non-examples.'],['định nghĩa dễ hiểu','student-friendly definition','A mathematically accurate definition at an appropriate reading level.'],['ngôn ngữ học thuật','academic language','School language, discipline-specific (perimeter) or general (explain, compare).'],['bảng từ vựng dán tường','word wall','Displayed math words with definitions, examples and visuals.'],['câu mở đầu gợi ý / khung câu','sentence starter / frame','A prompt that begins a sentence for students to complete.']);
 window.__selftest=window.__selftest||{};
@@ -1261,7 +1289,7 @@ function v2(){
   function dsel(id,val){return '<select id="'+id+'">'+[2,3,4,5,6,8,10,12].map(function(d){return '<option value="'+d+'"'+(d===val?' selected':'')+'>'+d+'</option>';}).join('')+'</select>';}
   return hero('Mô hình phép cộng và trừ phân số trên trục số','Model fraction addition and subtraction on the number line','Chiến lược 3: dựng số hạng thứ nhất bằng các mảnh phân số, rồi nối thêm số hạng thứ hai. Tổng là độ dài kết hợp. Phép trừ là nhảy ngược về bên trái.','Strategy 3: build the first addend with fraction tiles, then add on the second. The combined length is the sum. Subtraction is a jump back to the left.')+
   panel(T('Xem video minh hoạ','Watch the demonstrations'),TK.videoLinks([['https://www.youtube.com/watch?v=vzHeOz1JNWE','Fraction Addition · 5:05'],['https://www.youtube.com/watch?v=Q10bGoVVQrs','Fraction Subtraction · 6:11'],['https://apps.mathlearningcenter.org/number-line/','Number Line App (MLC)']]))+
-  panel(T('Thực hành: cộng, trừ trên trục số','Try it: add and subtract on the number line'),
+  panel(T('Thực hành: cộng, trừ trên trục số','Try it: add and subtract on the number line'),(TK.BK()==='5'?ex5HTML():'')+
    '<div class="grid2" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr))"><label class="f" for="wb-n1"><span>'+T('Tử số 1','Numerator 1')+'</span><input type="number" id="wb-n1" min="1" max="24" value="'+b.n1+'"></label>'+
    '<label class="f" for="wb-d1"><span>'+T('Mẫu số 1','Denominator 1')+'</span>'+dsel('wb-d1',b.d1)+'</label>'+
    '<label class="f" for="wb-op"><span>'+T('Phép tính','Operation')+'</span><select id="wb-op"><option value="+"'+(b.op==='+'?' selected':'')+'>+</option><option value="-"'+(b.op==='-'?' selected':'')+'>−</option></select></label>'+
@@ -1287,8 +1315,12 @@ function drawB(){
   s+='<div style="margin-top:10px;line-height:2.1"><div>'+T('<b>Quy đồng mẫu số</b> ('+d1+' và '+d2+' → '+Lc+'):','<b>Common denominator</b> ('+d1+' and '+d2+' → '+Lc+'):')+' '+fr(n1,d1)+' = '+fr(a,Lc)+'; '+fr(n2,d2)+' = '+fr(c,Lc)+'</div>'+
    '<div>'+T('<b>Tính:</b>','<b>Compute:</b>')+' '+fr(a,Lc)+' '+(b.op==='+'?'+':'−')+' '+fr(c,Lc)+' = '+fr(r,Lc)+(g>1?' = '+(Lc/g===1?String(r/g):fr(r/g,Lc/g)):'')+(r/Lc>1&&(r/g)%(Lc/g)!==0?' = '+mixed(r/g,Lc/g):'')+'</div>'+
    '<div style="color:var(--muted);font-size:13px">'+T('Nhìn trên trục số: số hạng thứ nhất là cung xanh, số hạng thứ hai là cung cam. Vạch trên chia theo mẫu số '+d1+', vạch dưới chia theo mẫu số '+d2+'.','On the line: the first addend is the teal jump, the second is the orange jump. Upper ticks divide by '+d1+', lower ticks by '+d2+'.')+'</div></div>';
+  if(TK.BK()==='5'&&d1!==d2&&d1%d2&&d2%d1)s=callout(T('Cặp mẫu số '+d1+' và '+d2+' không là bội của nhau: dạng bài này vượt chương trình Stage 5 (sách chỉ cộng, trừ phân số cùng mẫu hoặc mẫu là bội của nhau, Vol 1 · 5.1). Dùng để giáo viên tham khảo.','Denominators '+d1+' and '+d2+' are not multiples of each other: this goes beyond Stage 5 (the book only adds and subtracts fractions with the same denominator or denominators that are multiples, Vol 1 · 5.1). For teacher reference.'),true)+s;
   $('#wb-out').innerHTML=s;
 }
+var EX5=[[1,2,'+',3,8],[2,3,'+',1,6],[3,5,'+',4,5],[3,4,'-',1,8],[5,6,'-',1,3],[7,10,'-',2,5]];
+function ex5HTML(){return '<p style="font-size:13.5px;margin-bottom:6px">'+T('<b>Ví dụ theo sách Stage 5</b> (cùng mẫu hoặc mẫu là bội của nhau, Vol 1 · 5.1). Bấm để dựng trên trục số:','<b>Stage 5 examples</b> (same denominator or denominators that are multiples, Vol 1 · 5.1). Tap to build on the number line:')+'</p><div class="row" style="margin-bottom:12px">'+EX5.map(function(e,i){return '<button class="chipbtn" data-act="m3ex5" data-i="'+i+'">'+e[0]+'/'+e[1]+' '+(e[2]==='+'?'+':'−')+' '+e[3]+'/'+e[4]+'</button>';}).join('')+'</div>';}
+ACT.m3ex5=function(el){var e=EX5[+el.getAttribute('data-i')],b=w3.b;b.n1=e[0];b.d1=e[1];b.op=e[2];b.n2=e[3];b.d2=e[4];TK.render(true);};
 function bindB(){
   ['wb-n1','wb-d1','wb-op','wb-n2','wb-d2'].forEach(function(id){var el=$('#'+id),ev=el.tagName==='INPUT'?'input':'change';
     el.addEventListener(ev,function(){var b=w3.b;b.n1=+$('#wb-n1').value||1;b.d1=+$('#wb-d1').value;b.op=$('#wb-op').value;b.n2=+$('#wb-n2').value||1;b.d2=+$('#wb-d2').value;drawB();});});
@@ -1665,9 +1697,18 @@ function v3(){
    callout(T('Lớp ngắn hơn 30 phút: dùng bước 1–4, bỏ hoặc tách riêng bước 5; hoặc chia làm hai tiết. Học sinh nên đã biết giải bài Nhóm bằng nhau, nhân chia số tự nhiên và viết phương trình nhân, chia. Hãy chọn bộ bài A, B hoặc C (nên bắt đầu với A; C khó nhất).','Shorter than 30 minutes: use steps 1–4 and skip or separate step 5, or use two sessions. Students should already solve Equal Groups problems, multiply and divide whole numbers, and write multiplication and division equations. Choose problem set A, B or C (start with A; C is the most challenging).')))+
   panel(T('Xem video routine','Watch the routine videos'),TK.videoLinks([['https://www.youtube.com/watch?v=9O8vtr4ktZ0','Video 1 · 15:07 · tổng quan 5 bước / overview of the five steps'],['https://www.youtube.com/watch?v=srb9jqbbCSI','Video 2 · 10:42 · Bước 5 / Step 5 (optional)']]))+
   panel(T('Mô phỏng: bạn đóng vai học sinh','Simulator: you play the student'),'<div id="m4-sim"></div>')+
-  panel(T('Quy trình phân loại thẻ: Bài toán Thay đổi hay So sánh? (H10)','Card sorting routine: Change or Compare? (H10)'),'<p style="font-size:13.5px">'+T('Học sinh đọc to bài, đặt vào nhóm “Thay đổi” hoặc “So sánh” mà chưa giải, rồi nói: “Bài này là bài ___ vì …”. Bạn học đáp: “Em đồng ý / không đồng ý vì …”. Các bài trong app do mình soạn.','Students read the problem aloud, place it in “Change” or “Compare” without solving, and say “This problem is a ___ problem because…”. The partner replies “I agree / disagree because…”. The problems here are my own.')+'</p>'+TK.sorterHTML('m4s',sortCfg())+noteBox('sortx',T('Phiếu ra cửa: Một điều em học được về bài Thay đổi / So sánh là …','Exit task: One thing I learned about Change / Compare problems is …'),2))+done();
+  panel(T('Quy trình phân loại thẻ: Bài toán Thay đổi hay So sánh? (H10)','Card sorting routine: Change or Compare? (H10)'),'<p style="font-size:13.5px">'+T('Học sinh đọc to bài, đặt vào nhóm “Thay đổi” hoặc “So sánh” mà chưa giải, rồi nói: “Bài này là bài ___ vì …”. Bạn học đáp: “Em đồng ý / không đồng ý vì …”. Các bài trong app do mình soạn.','Students read the problem aloud, place it in “Change” or “Compare” without solving, and say “This problem is a ___ problem because…”. The partner replies “I agree / disagree because…”. The problems here are my own.')+'</p>'+TK.sorterHTML(TK.BK()==='5'?'m4s5':'m4s',sortCfg())+noteBox('sortx',T('Phiếu ra cửa: Một điều em học được về bài Thay đổi / So sánh là …','Exit task: One thing I learned about Change / Compare problems is …'),2))+done();
 }
-function sortCfg(){var C=[['Có 24 cái bút chì trong hộp. Bé lấy đi 9 cái. Còn lại bao nhiêu cái?','There were 24 pencils in the box. Ben took 9. How many are left?','c','Có lúc đầu, có hành động lấy đi, có kết quả.','It has a start, an action (taking away) and a result.'],['An có 15 viên bi. Bình có 9 viên bi. An có nhiều hơn Bình bao nhiêu viên?','An has 15 marbles. Binh has 9 marbles. How many more marbles does An have than Binh?','p','So sánh hai người với từ “nhiều hơn”.','It compares two people using “more than”.'],['Cây bưởi cao 3 m. Sau một năm cây cao thêm 2 m. Bây giờ cây cao bao nhiêu mét?','A tree was 3 m tall. After a year it grew 2 m taller. How tall is the tree now?','c','Một đại lượng tăng theo thời gian.','A quantity increases over time.'],['Hà đọc 18 trang. Mai đọc ít hơn Hà 6 trang. Mai đọc bao nhiêu trang?','Ha read 18 pages. Mai read 6 fewer pages than Ha. How many pages did Mai read?','p','So sánh hai bạn với từ “ít hơn”.','It compares two children using “fewer than”.'],['Trên xe buýt có 30 hành khách. Đến trạm sau có thêm 8 người lên. Bây giờ có bao nhiêu hành khách?','There were 30 passengers on the bus. At the next stop 8 more got on. How many passengers are there now?','c','Có hành động “lên xe” làm số người tăng.','An action (getting on) increases the number.'],['Tòa nhà A cao 45 m. Tòa nhà B thấp hơn tòa A 12 m. Tòa nhà B cao bao nhiêu mét?','Building A is 45 m tall. Building B is 12 m shorter than A. How tall is B?','p','So sánh hai vật với từ “thấp hơn”.','It compares two things using “shorter than”.']];
+var SORT5=[
+ ['Lúc 6 giờ sáng nhiệt độ là −3 °C. Đến trưa nhiệt độ tăng thêm 8 °C. Lúc trưa nhiệt độ là bao nhiêu?','At 6 a.m. the temperature was −3 °C. By noon it had risen by 8 °C. What was the temperature at noon?','c','Có lúc đầu (−3 °C), có thay đổi (tăng 8 °C) và kết quả.','It has a start (−3 °C), a change (up 8 °C) and a result.'],
+ ['Nhiệt độ ở Hà Nội là 12 °C, ở Mát-xcơ-va là −5 °C. Hà Nội ấm hơn Mát-xcơ-va bao nhiêu độ?','It is 12 °C in Hanoi and −5 °C in Moscow. How many degrees warmer is Hanoi than Moscow?','p','So sánh hai thành phố với từ “ấm hơn”.','It compares two cities using “warmer than”.'],
+ ['Mai có một sợi ruy băng dài 2,5 m. Mai cắt đi 0,75 m. Sợi ruy băng còn lại dài bao nhiêu mét?','Mai has a ribbon 2.5 m long. She cuts off 0.75 m. How long is the ribbon now?','c','Có hành động “cắt đi” làm độ dài giảm.','An action (cutting off) makes the length decrease.'],
+ ['Túi gạo nặng 3,25 kg. Túi đường nhẹ hơn túi gạo 1,5 kg. Túi đường nặng bao nhiêu ki-lô-gam?','A bag of rice weighs 3.25 kg. A bag of sugar is 1.5 kg lighter than the rice. How heavy is the bag of sugar?','p','So sánh hai túi với từ “nhẹ hơn”.','It compares two bags using “lighter than”.'],
+ ['Thang máy đang ở tầng 4 rồi đi xuống 6 tầng. Thang máy dừng ở tầng nào?','A lift is on floor 4 and goes down 6 floors. Which floor does it stop at?','c','Có vị trí lúc đầu, có thay đổi (đi xuống) và vị trí lúc sau (tầng −2).','It has a start, a change (going down) and an end position (floor −2).'],
+ ['An uống 3/8 lít nước, Bình uống 5/8 lít nước. Bình uống nhiều hơn An bao nhiêu lít?','An drinks 3/8 litre of water and Binh drinks 5/8 litre. How much more does Binh drink than An?','p','So sánh hai bạn với từ “nhiều hơn”.','It compares two children using “more than”.'],
+ ['Bộ phim bắt đầu lúc 14:35 và kéo dài 1 giờ 20 phút. Phim kết thúc lúc mấy giờ?','A film starts at 14:35 and lasts 1 hour 20 minutes. What time does it finish?','c','Có thời điểm bắt đầu, khoảng thời gian trôi qua (thay đổi) và thời điểm kết thúc.','It has a start time, a time interval (the change) and an end time.'],
+ ['Sơn chạy 100 m hết 15,4 giây. Minh chạy hết 16,1 giây. Minh chạy chậm hơn Sơn bao nhiêu giây?','Son runs 100 m in 15.4 seconds. Minh takes 16.1 seconds. How many seconds slower is Minh than Son?','p','So sánh thời gian của hai bạn với từ “chậm hơn”.','It compares two times using “slower than”.']];
+function sortCfg(){var C=(TK.BK()==='5'&&SORT5)||[['Có 24 cái bút chì trong hộp. Bé lấy đi 9 cái. Còn lại bao nhiêu cái?','There were 24 pencils in the box. Ben took 9. How many are left?','c','Có lúc đầu, có hành động lấy đi, có kết quả.','It has a start, an action (taking away) and a result.'],['An có 15 viên bi. Bình có 9 viên bi. An có nhiều hơn Bình bao nhiêu viên?','An has 15 marbles. Binh has 9 marbles. How many more marbles does An have than Binh?','p','So sánh hai người với từ “nhiều hơn”.','It compares two people using “more than”.'],['Cây bưởi cao 3 m. Sau một năm cây cao thêm 2 m. Bây giờ cây cao bao nhiêu mét?','A tree was 3 m tall. After a year it grew 2 m taller. How tall is the tree now?','c','Một đại lượng tăng theo thời gian.','A quantity increases over time.'],['Hà đọc 18 trang. Mai đọc ít hơn Hà 6 trang. Mai đọc bao nhiêu trang?','Ha read 18 pages. Mai read 6 fewer pages than Ha. How many pages did Mai read?','p','So sánh hai bạn với từ “ít hơn”.','It compares two children using “fewer than”.'],['Trên xe buýt có 30 hành khách. Đến trạm sau có thêm 8 người lên. Bây giờ có bao nhiêu hành khách?','There were 30 passengers on the bus. At the next stop 8 more got on. How many passengers are there now?','c','Có hành động “lên xe” làm số người tăng.','An action (getting on) increases the number.'],['Tòa nhà A cao 45 m. Tòa nhà B thấp hơn tòa A 12 m. Tòa nhà B cao bao nhiêu mét?','Building A is 45 m tall. Building B is 12 m shorter than A. How tall is B?','p','So sánh hai vật với từ “thấp hơn”.','It compares two things using “shorter than”.']];
   return {cats:[{k:'c',vi:'Bài Thay đổi',en:'Change problems'},{k:'p',vi:'Bài So sánh',en:'Compare problems'}],cards:C.map(function(c,i){return {id:'s'+i,cat:c[2],html:function(){return '<span style="font:400 14px var(--sans);text-align:left;max-width:260px;display:block">'+P(c[0],c[1])+'</span>';},vi:c[3],en:c[4]};}),starter:{vi:'Nhớ nói: “Bài này là bài ___ vì …”. Thông tin nào giúp em quyết định?','en':'Remember to say: “This problem is a ___ problem because…”. What information helped you decide?'}};}
 ACT.m4set=function(el){w4.set=+el.getAttribute('data-i');simNew();renderSim();};
 ACT.m4enough=function(el){var fb=$('#m4-fb');if(el.getAttribute('data-v')==='0'){w4.sim.phase='p1read2';w4.sim.some=false;fb.innerHTML=callout(T('Đúng: bài chỉ nói “một số” nên chưa đủ thông tin để tính. Hãy hỏi để hiểu tình huống, rồi thay “một số” bằng số cụ thể.','Right: the problem says “some”, so there is not enough information to calculate. Ask questions to make sense of it, then replace “some” with a number.'))+'<div class="row end"><button class="btn pri" data-act="m4reveal">'+I('Thay bằng số','Replace with the number')+' →</button></div>';}else fb.innerHTML=callout(T('Chưa. Bài chỉ có “một số”, ta chưa biết số cụ thể.','Not yet. It only says “some”, so we do not know the number.'),true);};
@@ -1769,13 +1810,16 @@ function classify(p){var a=p.a,b=p.b,op=p.op,r;
 function pretty(o){return o.w>0&&o.n>0?mixed(o.w*o.d+o.n,o.d):(o.n===0?String(o.w):fr(o.n,o.d));}
 /* ================= sequencing checker ================= */
 var SAMPLE={cmp:'3/8 < 5/8\n3/8 > 3/5\n1/2 > 3/8\n2/6 < 3/4\n2/3 > 4/7',add:'2/8 + 5/8\n5/8 + 6/8\n3/4 + 1/8\n5/6 + 1/4\n2/3 + 4/7\n13/8 + 7/4\n1 1/3 + 2 2/6\n3 5/6 + 4 3/4',sub:'5/8 − 2/8\n1 − 3/8\n1/3 − 1/6\n5/6 − 1/4\n2/3 − 2/4\n7/4 − 5/4\n3 7/8 − 2 3/8\n4 1/3 − 1 3/4'};
+var SAMPLE5={cmp:'3/8 < 5/8\n3/8 > 3/10\n1/2 > 3/8\n2/3 < 5/6\n3/4 > 5/8',add:'1/5 + 2/5\n3/8 + 7/8\n1/2 + 1/4\n2/3 + 1/6\n3/10 + 1/5\n5/6 + 2/3',sub:'4/5 − 1/5\n1 − 3/8\n1/2 − 1/4\n5/6 − 1/3\n7/10 − 2/5\n3/4 − 5/8'};
+function S5(){return TK.BK()==='5';}
+function LST(){return (S5()?'list5.':'list.')+w5.op;}
 function v1(){
   var kc=TK.kcBlock('a',KC);
   return hero('Buổi sinh hoạt nhóm: xếp thứ tự bài tập, số dễ tiếp cận, phản hồi và ôn tập','PLC session: sequencing, accessible numbers, feedback and review','Dạy học có hệ thống là “gói” các thực hành đã học ở các module trước, được sắp xếp có chủ đích: từ dễ đến khó, có hỗ trợ trực quan và lời nói, phản hồi kịp thời và ôn tập xen kẽ.','Systematic instruction bundles practices from earlier modules and orders them deliberately: simple to complex, with visual and verbal supports, timely feedback and cumulative review.')+
   panel(T('Máy kiểm tra thứ tự bài tập','Sequencing checker'),
    '<p style="font-size:13.5px">'+T('Dán danh sách bài (mỗi dòng một bài, ví dụ <span class="kbd">3/8 + 5/8</span> hoặc <span class="kbd">1 1/3 − 3/4</span>; dùng <span class="kbd">&lt;</span> hoặc <span class="kbd">&gt;</span> cho so sánh). App gắn mỗi bài vào một chặng của dãy bài từ đơn giản đến phức tạp và báo chỗ bị nhảy cóc.','Paste a list of problems (one per line, e.g. <span class="kbd">3/8 + 5/8</span> or <span class="kbd">1 1/3 − 3/4</span>; use <span class="kbd">&lt;</span> or <span class="kbd">&gt;</span> for comparisons). The app places each problem on the simple-to-complex ladder and flags gaps.')+'</p>'+
    '<div class="row" style="margin-bottom:8px"><b style="font-size:13px">'+P('Loại bài:','Kind:')+'</b>'+[['cmp','So sánh','Comparison'],['add','Cộng','Addition'],['sub','Trừ','Subtraction']].map(function(o){return '<button class="chipbtn" aria-pressed="'+(w5.op===o[0]?'true':'false')+'" data-act="m5op" data-v="'+o[0]+'">'+I(o[1],o[2])+'</button>';}).join('')+'</div>'+
-   '<label class="f" for="m5-list"><span>'+T('Danh sách bài của bạn','Your problem list')+'</span><textarea id="m5-list" rows="6" style="font-family:var(--mono)">'+esc(TK.getP('list.'+w5.op)||SAMPLE[w5.op])+'</textarea></label><div id="m5-chk" style="margin-top:10px"></div>')+
+   '<label class="f" for="m5-list"><span>'+T('Danh sách bài của bạn','Your problem list')+'</span><textarea id="m5-list" rows="6" style="font-family:var(--mono)">'+esc(TK.getP(LST())||(S5()?SAMPLE5:SAMPLE)[w5.op])+'</textarea></label><div id="m5-chk" style="margin-top:10px"></div>')+
   panel(T('Bộ tạo bài theo chặng','Problem generator by stage'),
    '<div class="row"><label class="f" for="m5-gr"><span>'+T('Chặng','Stage')+'</span><select id="m5-gr" style="min-width:280px"></select></label><button class="btn pri" data-act="m5gen" style="align-self:flex-end">'+I('Tạo 6 bài','Generate 6')+'</button><button class="btn" data-act="m5use" style="align-self:flex-end">'+I('Đưa vào máy kiểm tra','Send to checker')+'</button></div><div id="m5-gen" style="margin-top:10px"></div><p style="font-size:13px;color:var(--muted)">'+T('Dùng loại bài đang chọn ở trên. Số dễ tiếp cận: bắt đầu từ phân số đơn vị rồi không phải đơn vị; mẫu số chẵn và nhỏ; phân số gần hoặc bằng mốc (1/2, 1); tăng dần sự đa dạng để tránh khái quát hoá sai.','Uses the kind chosen above. Accessible numbers: start with unit fractions then non-unit; even, small denominators; fractions close or equal to benchmarks (1/2, 1); increase variety over time to avoid overgeneralizing.')+'</p>')+
   panel(T('Trò chơi Aim Low / Aim High','Aim Low / Aim High game'),
@@ -1786,7 +1830,7 @@ function v1(){
   panel(T('Kiểm tra nhanh','Knowledge check'),kc+'<div id="m5-kc-anchor"></div>')+done();
 }
 function seqRender(){
-  var raw=$('#m5-list').value;TK.setP('list.'+w5.op,raw);TK.save();
+  var raw=$('#m5-list').value;TK.setP(LST(),raw);TK.save();
   var lines=raw.split('\n').map(function(x){return x.trim();}).filter(Boolean),rows=[],bad=[];
   lines.forEach(function(l){var p=pProblem(l);if(!p){bad.push(l);return;}var op=w5.op;if(p.op!==op&&!(op==='cmp'&&p.op==='cmp')){bad.push(l+' ('+P('không đúng loại','wrong kind')+')');return;}p.rank=classify(p);rows.push(p);});
   var sorted=rows.slice().sort(function(a,b){return a.rank-b.rank;}),present={};rows.forEach(function(r){present[r.rank]=1;});
@@ -1796,6 +1840,7 @@ function seqRender(){
   var back=0;rows.forEach(function(r){if(r.rank<prev)back++;prev=r.rank;});
   var h='<div class="tw"><table><thead><tr><th>#</th><th>'+P('Bài','Problem')+'</th><th>'+P('Chặng','Stage')+'</th><th>'+P('Mô tả','Description')+'</th></tr></thead><tbody>'+rows.map(function(r,i){var lab=RANKS[w5.op][r.rank];var sym=w5.op==='cmp'?(/</.test(r.line)?'&lt;':/>/.test(r.line)?'&gt;':'vs'):(w5.op==='add'?'+':'−');return '<tr><td>'+(i+1)+'</td><td style="white-space:nowrap">'+pretty(r.a)+' '+sym+' '+pretty(r.b)+'</td><td><span class="chip mark">'+r.rank+'</span></td><td style="font-size:13px">'+T(lab[0],lab[1])+'</td></tr>';}).join('')+'</tbody></table></div>';
   h+='<div class="flow" style="margin-top:8px">'+ranks.map(function(k){var c=rows.filter(function(r){return r.rank===k;}).length;return '<span class="'+(c?'on':'')+'">'+k+' · '+c+'</span>';}).join('')+'</div>';
+  if(S5()&&rows.some(function(r){return r.rank>3;}))h+=callout(T('Có bài ở chặng 4 trở lên: vượt chương trình Stage 5 (sách chỉ có cùng mẫu và mẫu là bội của nhau, Vol 1 · 4.3 và 5.1).','Some problems are at stage 4 or above: beyond Stage 5 (the book only has like denominators and denominators that are multiples, Vol 1 · 4.3 and 5.1).'),true);
   if(back)h+=callout(T('Thứ tự bạn gõ quay lại chặng dễ hơn '+back+' lần. Không sao nếu có chủ ý (quay lại bài nền tảng để thu thập thông tin), nhưng hãy kiểm tra.','Your typed order moves back to an easier stage '+back+' time(s). That is fine if intentional (returning to foundational problems to gather information); just double-check.'));
   warn.forEach(function(w){h+=callout(w,true);});
   if(bad.length)h+=callout(T('Không đọc được: ','Could not read: ')+esc(bad.join(' | ')),true);
@@ -1805,7 +1850,7 @@ function seqRender(){
 ACT.m5op=function(el){w5.op=el.getAttribute('data-v');w5.gen.op=w5.op;TK.render(true);};
 /* ---------- generator ---------- */
 var DEN=[2,3,4,5,6,8,10,12];
-function fillRanks(){var op=w5.op,sel=$('#m5-gr');sel.innerHTML=Object.keys(RANKS[op]).map(function(k){return '<option value="'+k+'"'+(+k===w5.gen.rank?' selected':'')+'>'+k+' · '+esc(P(RANKS[op][k][0],RANKS[op][k][1]))+'</option>';}).join('');sel.onchange=function(){w5.gen.rank=+sel.value;};if(!RANKS[op][w5.gen.rank]){w5.gen.rank=1;}}
+function fillRanks(){var op=w5.op,sel=$('#m5-gr');sel.innerHTML=Object.keys(RANKS[op]).filter(function(k){return !S5()||+k<=3;}).map(function(k){return '<option value="'+k+'"'+(+k===w5.gen.rank?' selected':'')+'>'+k+' · '+esc(P(RANKS[op][k][0],RANKS[op][k][1]))+'</option>';}).join('');sel.onchange=function(){w5.gen.rank=+sel.value;};if(!RANKS[op][w5.gen.rank]||(S5()&&w5.gen.rank>3)){w5.gen.rank=1;sel.value='1';}}
 function genOne(op,rank){
   for(var t=0;t<600;t++){var d1=DEN[rnd(0,7)],d2=DEN[rnd(0,7)],p;
     if(rank>=7){var w1=rnd(1,3),w2=rnd(1,3);d2=d1;if(rank>=7&&Math.random()<0.5)d2=DEN[rnd(0,7)];p={op:op,a:{w:w1,n:rnd(1,d1-1),d:d1,v:0},b:{w:w2,n:rnd(1,d2-1),d:d2,v:0},line:''};if(op==='sub'&&w1<w2){var tmp=p.a;p.a=p.b;p.b=tmp;}p.a.v=p.a.w+p.a.n/p.a.d;p.b.v=p.b.w+p.b.n/p.b.d;}
@@ -1910,9 +1955,9 @@ window.__selftest['m5:1']=function(){var d=document;d.querySelector('[data-act="
 })();
 (function(){window.__selftest=window.__selftest||{};var prev=window.__selftest['m5:1'];
 window.__selftest['m5:1']=function(){var d=document;function ranks(){return Array.prototype.map.call(d.querySelectorAll('#m5-chk td .chip.mark'),function(e){return e.textContent;}).join('');}
-  var r1=ranks();if(r1!=='12345')throw new Error('cmp ranks '+r1);
-  d.querySelector('[data-act="m5op"][data-v="add"]').click();var r2=ranks();if(r2!=='12345678')throw new Error('add ranks '+r2);
-  d.querySelector('[data-act="m5op"][data-v="sub"]').click();var r3=ranks();if(r3!=='12345678')throw new Error('sub ranks '+r3);
+  var s5=TK.BK()==='5',E=s5?['12333','123333','123333']:['12345','12345678','12345678'];var r1=ranks();if(r1!==E[0])throw new Error('cmp ranks '+r1);
+  d.querySelector('[data-act="m5op"][data-v="add"]').click();var r2=ranks();if(r2!==E[1])throw new Error('add ranks '+r2);
+  d.querySelector('[data-act="m5op"][data-v="sub"]').click();var r3=ranks();if(r3!==E[2])throw new Error('sub ranks '+r3);
   d.querySelector('[data-act="m5op"][data-v="cmp"]').click();
   // generator sanity: every generated problem must classify to the requested stage
   ['cmp','add','sub'].forEach(function(op){d.querySelector('[data-act="m5op"][data-v="'+op+'"]').click();var s=d.getElementById('m5-gr');var n=s.options.length;for(var i=0;i<n;i++){s.selectedIndex=i;s.dispatchEvent(new Event('change'));d.querySelector('[data-act="m5gen"]').click();if(!d.querySelector('#m5-gen .chip'))throw new Error('no items for '+op+' stage '+s.value);}});
@@ -2062,6 +2107,7 @@ var MAP=[
  ['Chung','Bảng thuật ngữ: định nghĩa tiếng Anh','Glossary: English definitions',a(U.gl,'Toolkit Glossary')+' · '+a(U.pg,'WWC PG tr.56–57'),'c'],
  ['Chung','Bảng thuật ngữ: thuật ngữ tiếng Việt đã đối chiếu với sách (cột có số trang)','Glossary: Vietnamese terms checked against the book (entries with a page)','Sách Stage 6 Learner’s Book Vol 2 · Bảng chú giải thuật ngữ, tr.124–133 (cả hai ngôn ngữ) — tôi đọc trực tiếp từng trang; các thuật ngữ không có số trang là bản dịch của tôi / read page by page in both languages; entries without a page are my own translation','q'],
  ['Chung','Toàn bộ câu hỏi kiểm tra và giải thích; ví dụ tình huống Việt Nam; tên các mục nội dung bằng tiếng Việt','All knowledge checks and explanations; Vietnamese-context examples; Vietnamese names of sections','Tự dịch / tự soạn (xem bảng kiểm) / Self-translated or self-authored (see the checklist)','o'],
+ ['Chung','Bộ ví dụ riêng cho Stage 5: 3 câu đố “Số nào không cùng nhóm?” (Module 1), ví dụ cộng trừ phân số cùng mẫu hoặc mẫu là bội của nhau (Module 3), 8 thẻ Thay đổi / So sánh với số thập phân, số âm, phân số, thời gian (Module 4), dãy bài mẫu và bộ tạo bài giới hạn ở chặng 1–3 (Module 5)','Stage 5 example sets: 3 “Which one doesn’t belong?” puzzles (M1), like/multiple-denominator fraction examples (M3), 8 Change/Compare cards with decimals, negatives, fractions and time (M4), sample sequences and generator limited to stages 1–3 (M5)','Tự soạn theo nội dung các mục Stage 5 (2.2–2.3, 3.1–3.2, 4.2–4.3, 5.1, 13.1), không lấy từ sách / Self-authored to match Stage 5 sections, not taken from the book','o'],
  ['Chung','Đối chiếu với sách Stage 5 (nút “Sách: Stage 5”): tên Học phần, tên mục, số trang, mục tiêu “Chúng ta sẽ cùng…” của các mục; bảng thuật ngữ Stage 5','Mapping to the Stage 5 book (the “Stage 5” button): unit and section titles, pages, “We are going to…” objectives; the Stage 5 glossary','Sách Stage 5 Learner’s Book (Vol 1, Vol 2) của trường, không có link công khai: tôi đã đọc mục lục hai tập (Vol 1 tr.4, Vol 2 tr.3, cả bản tiếng Việt), bảng chú giải (Vol 2 tr.96–103, đọc ảnh trang tiếng Việt), phần chữ tiếng Anh của trang mở đầu mọi mục và tìm các từ khoá (trục số, mô hình thanh, bức tường phân số…) trong phần chữ tiếng Anh của hai tập; bài tập và hình vẽ chưa xem hết / I read both contents pages (also in Vietnamese), the glossary (Vol 2 pp.96–103, Vietnamese from page images), the English opening page of every section, and searched the English text of both volumes for key terms; exercises and figures not fully checked','q'],
  ['Chung','Đối chiếu với sách Stage 6: tên Học phần (Unit), tên các mục, ô thuật ngữ và mục tiêu “Chúng ta sẽ cùng…” ở trang mở đầu của 34 mục','Mapping to the Stage 6 book: unit titles, section titles, key-term boxes and “We are going to…” objectives on the opening page of 34 sections','Sách Stage 6 Learner’s Book (Vol 1, Vol 2) của trường, không có link công khai: tôi đã đọc mục lục hai tập (Vol 1 tr.4, Vol 2 tr.3), bảng chú giải (Vol 2 tr.124–133), phần “Tư duy và Làm việc theo Toán học” (Vol 1 tr.7–8) và phần chữ tiếng Anh của mọi trang trong hai tập (ví dụ minh hoạ, bài tập, bảng chú giải); trang mở đầu của 34 mục tôi xem cả ảnh trang song ngữ; phần tiếng Việt của các bài tập tôi mới đối chiếu ở một vài trang, chưa đọc hết; hình vẽ chỉ xem ở các trang đã dựng ảnh. Sách là Cambridge Primary Mathematics Learner’s Book 6 (Cambridge University Press 2022), bản in song ngữ của trường, nên app không sao chép nội dung / the school’s book, no public link: I read the English text of every page of both volumes (worked examples, exercises, glossary) and viewed the bilingual page images for the opening of 34 sections; I compared the Vietnamese of exercises on only a few pages and viewed figures only on the pages I rendered. It is Cambridge Primary Mathematics Learner’s Book 6 (Cambridge University Press 2022) in the school’s bilingual print, so the app copies no content','c']];
 function v0(){
